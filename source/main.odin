@@ -31,6 +31,8 @@ import example "01_io/01_window"
 // import example "02_gl/05_textures/03_texture_loading"
 // import example "02_gl/05_textures/04_mipmap"
 
+// import example "03_2d_graphics/01_general/01_camera"
+
 main :: proc() {
     example.main()
 }
