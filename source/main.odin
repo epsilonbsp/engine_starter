@@ -11,6 +11,7 @@ import example "01_io/01_window"
 // import example "02_gl/02_primitives/02_lines"
 // import example "02_gl/02_primitives/03_triangles"
 // import example "02_gl/02_primitives/04_triangle_strip"
+// import example "02_gl/02_primitives/05_triangle_fan"
 
 main :: proc() {
     example.main()
