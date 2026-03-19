@@ -20,18 +20,17 @@ gl
     buffers
         vertex_buffer
         index_buffer
+        instancing
+        instancing_mesh
+        instancing_multiple_meshes
+        shader_storage_buffer
         uniform_buffer
-        shared_storage_buffer
     textures
         texture
         mipmap
         array_texture
         bindless_texture
     framebuffer
-    instancing
-        instancing
-        instancing_mesh
-        instancing_multiple_meshes
 2d_graphics
     general
         camera
