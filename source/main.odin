@@ -26,6 +26,8 @@ import example "01_io/01_window"
 // import example "02_gl/04_buffers/06_shader_storage_buffer"
 // import example "02_gl/04_buffers/07_uniform_buffer"
 
+// import example "02_gl/05_textures/01_texture_generation_cpu"
+
 main :: proc() {
     example.main()
 }
