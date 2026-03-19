@@ -92,9 +92,9 @@ main :: proc() {
 
     viewport_x, viewport_y: i32; sdl.GetWindowSize(window, &viewport_x, &viewport_y)
     key_state := sdl.GetKeyboardState(nil)
-    time: u64 = sdl.GetTicks()
-    time_delta: f32 = 0
-    time_last := time
+    time_curr := u64(sdl.GetTicks())
+    time_last: u64
+    time_delta: f32
 
     main_pg, main_ok := gl.load_shaders_source(MAIN_VS, MAIN_FS); defer gl.DeleteProgram(main_pg)
     main_uf := gl.get_uniforms_from_program(main_pg); defer gl.destroy_uniforms(main_uf);
@@ -114,9 +114,9 @@ main :: proc() {
     camera_movement := Camera_Movement{move_speed = 200, zoom_speed = 5}
 
     loop: for {
-        time = sdl.GetTicks()
-        time_delta = f32(time - time_last) / 1000
-        time_last = time
+        time_curr = u64(sdl.GetTicks())
+        time_delta = f32(time_curr - time_last) / 1000
+        time_last = time_curr
 
         event: sdl.Event
 

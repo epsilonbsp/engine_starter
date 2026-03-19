@@ -169,8 +169,7 @@ main :: proc() {
     viewport_x, viewport_y: i32; sdl.GetWindowSize(window, &viewport_x, &viewport_y)
     time_curr := u64(sdl.GetTicks())
     time_last: u64
-    time_delta: u64
-    time_delta_seconds: f32
+    time_delta: f32
 
     compute_pg, compute_ok := gl.load_compute_source(COMPUTE_CS); defer gl.DeleteProgram(compute_pg)
     compute_uf := gl.get_uniforms_from_program(compute_pg); defer gl.destroy_uniforms(compute_uf);
@@ -215,8 +214,7 @@ main :: proc() {
 
     loop: for {
         time_curr = u64(sdl.GetTicks())
-        time_delta = time_curr - time_last
-        time_delta_seconds = f32(time_delta) / 1000
+        time_delta = f32(time_curr - time_last) / 1000
         time_last = time_curr
 
         event: sdl.Event
@@ -236,7 +234,7 @@ main :: proc() {
         // Update
         gl.UseProgram(compute_pg)
         gl.Uniform2f(compute_uf["u_viewport"].location, f32(viewport_x), f32(viewport_y))
-        gl.Uniform1f(compute_uf["u_delta_time"].location, time_delta_seconds)
+        gl.Uniform1f(compute_uf["u_delta_time"].location, time_delta)
         gl.DispatchCompute(u32((PARTICLE_CAP + 63) / 64), 1, 1)
         gl.MemoryBarrier(gl.SHADER_STORAGE_BARRIER_BIT)
 

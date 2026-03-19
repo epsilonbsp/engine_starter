@@ -108,9 +108,6 @@ main :: proc() {
     sdl.SetWindowPosition(window, sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED)
 
     viewport_x, viewport_y: i32; sdl.GetWindowSize(window, &viewport_x, &viewport_y)
-    time: u64 = sdl.GetTicks()
-    time_delta: f32 = 0
-    time_last := time
 
     main_pg, main_ok := gl.load_shaders_source(MAIN_VS, MAIN_FS); defer gl.DeleteProgram(main_pg)
     main_uf := gl.get_uniforms_from_program(main_pg); defer gl.destroy_uniforms(main_uf);
@@ -125,10 +122,7 @@ main :: proc() {
     gl.BindVertexArray(main_vao)
 
     loop: for {
-        time = sdl.GetTicks()
-        time_delta = f32(time - time_last) / 1000
-        time_last = time
-        seconds := f32(time) / 1000.0
+        time_seconds := f32(sdl.GetTicks()) / 1000.0
 
         event: sdl.Event
 
@@ -151,32 +145,32 @@ main :: proc() {
         gl.UniformMatrix4fv(main_uf["u_projection"].location, 1, false, &projection[0][0])
 
         // Translate
-        transform := make_transform({-256, 128 + glm.sin(seconds) * 64}, 0, {1, 1})
+        transform := make_transform({-256, 128 + glm.sin(time_seconds) * 64}, 0, {1, 1})
         gl.UniformMatrix3x2fv(main_uf["u_model"].location, 1, false, &transform[0][0])
         gl.DrawArrays(gl.TRIANGLE_STRIP, 0, 4)
 
         // Rotate
-        transform = make_transform({0, 128}, seconds, {1, 1})
+        transform = make_transform({0, 128}, time_seconds, {1, 1})
         gl.UniformMatrix3x2fv(main_uf["u_model"].location, 1, false, &transform[0][0])
         gl.DrawArrays(gl.TRIANGLE_STRIP, 0, 4)
 
         // Scale
-        transform = make_transform({256, 128}, 0, {1, 1} + glm.sin(seconds) / 4)
+        transform = make_transform({256, 128}, 0, {1, 1} + glm.sin(time_seconds) / 4)
         gl.UniformMatrix3x2fv(main_uf["u_model"].location, 1, false, &transform[0][0])
         gl.DrawArrays(gl.TRIANGLE_STRIP, 0, 4)
 
         // Shear X
-        transform = make_transform({-256, -128}, 0, {1, 1}, {glm.sin(seconds) * 0.5, 0})
+        transform = make_transform({-256, -128}, 0, {1, 1}, {glm.sin(time_seconds) * 0.5, 0})
         gl.UniformMatrix3x2fv(main_uf["u_model"].location, 1, false, &transform[0][0])
         gl.DrawArrays(gl.TRIANGLE_STRIP, 0, 4)
 
         // Shear Y
-        transform = make_transform({0, -128}, 0, {1, 1}, {0, glm.sin(seconds) * 0.5})
+        transform = make_transform({0, -128}, 0, {1, 1}, {0, glm.sin(time_seconds) * 0.5})
         gl.UniformMatrix3x2fv(main_uf["u_model"].location, 1, false, &transform[0][0])
         gl.DrawArrays(gl.TRIANGLE_STRIP, 0, 4)
 
         // Reflection
-        transform = make_transform({256, -128}, 0, {-1, -1} - glm.sin(seconds) / 4)
+        transform = make_transform({256, -128}, 0, {-1, -1} - glm.sin(time_seconds) / 4)
         gl.UniformMatrix3x2fv(main_uf["u_model"].location, 1, false, &transform[0][0])
         gl.DrawArrays(gl.TRIANGLE_STRIP, 0, 4)
 
