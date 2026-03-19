@@ -220,7 +220,7 @@ main :: proc() {
         // Output to main window framebuffer
         gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
         gl.Viewport(0, 0, viewport_x, viewport_y)
-        gl.ClearColor(0, 0, 0, 1)
+        gl.ClearColor(0.5, 0.5, 0.5, 1)
         gl.Clear(gl.COLOR_BUFFER_BIT)
 
         gl.UseProgram(main_pg)

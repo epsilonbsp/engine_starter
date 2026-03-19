@@ -157,7 +157,7 @@ main :: proc() {
         projection := glm.mat4Ortho3d(-f32(viewport_x) / 2, f32(viewport_x) / 2, -f32(viewport_y) / 2, f32(viewport_y) / 2, -1, 1)
 
         gl.Viewport(0, 0, viewport_x, viewport_y)
-        gl.ClearColor(0, 0, 0, 1)
+        gl.ClearColor(0.5, 0.5, 0.5, 1)
         gl.Clear(gl.COLOR_BUFFER_BIT)
 
         gl.UseProgram(main_pg)
