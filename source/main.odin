@@ -20,6 +20,7 @@ import example "01_io/01_window"
 
 // import example "02_gl/04_buffers/01_vertex_buffer"
 // import example "02_gl/04_buffers/02_index_buffer"
+// import example "02_gl/04_buffers/03_instancing"
 
 main :: proc() {
     example.main()
