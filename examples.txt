@@ -1,7 +1,6 @@
 io
     window
-    keyboard
-    mouse
+    input
     time
 gl
     basic
