@@ -22,6 +22,7 @@ import example "01_io/01_window"
 // import example "02_gl/04_buffers/02_index_buffer"
 // import example "02_gl/04_buffers/03_instancing"
 // import example "02_gl/04_buffers/04_instancing_mesh"
+// import example "02_gl/04_buffers/05_instancing_multiple_meshes"
 
 main :: proc() {
     example.main()
