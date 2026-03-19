@@ -48,9 +48,9 @@ gl
     model_loading
         gltf_primitive
     environment
-        simple_fog
         gradient_skybox
         cubemap_skybox
+        simple_fog
     light_casters
         directional
         point
