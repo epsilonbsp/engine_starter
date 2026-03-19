@@ -104,7 +104,7 @@ main :: proc() {
     gl.BindVertexArray(main_vao)
 
     // Source: https://ambientcg.com/view?id=Bricks101
-    main_image, _ := png.load_from_bytes(#load("textures/texture.png"), {.alpha_add_if_missing}); defer png.destroy(main_image)
+    main_image, _ := png.load_from_bytes(#load("texture.png"), {.alpha_add_if_missing}); defer png.destroy(main_image)
 
     main_tex: u32; gl.GenTextures(1, &main_tex); defer gl.DeleteTextures(1, &main_tex)
     gl.BindTexture(gl.TEXTURE_2D, main_tex)
