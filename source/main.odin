@@ -7,6 +7,8 @@ import example "01_io/01_window"
 // import example "02_gl/01_basic/01_clear_color"
 // import example "02_gl/01_basic/02_scissor_test"
 
+// import example "02_gl/02_primitives/01_points"
+
 main :: proc() {
     example.main()
 }
