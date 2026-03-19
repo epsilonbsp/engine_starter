@@ -29,6 +29,7 @@ import example "01_io/01_window"
 // import example "02_gl/05_textures/01_texture_generation_cpu"
 // import example "02_gl/05_textures/02_texture_generation_gpu"
 // import example "02_gl/05_textures/03_texture_loading"
+// import example "02_gl/05_textures/04_mipmap"
 
 main :: proc() {
     example.main()
