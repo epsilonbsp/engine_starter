@@ -18,6 +18,8 @@ import example "01_io/01_window"
 // import example "02_gl/03_shaders/03_tessellation"
 // import example "02_gl/03_shaders/04_compute"
 
+// import example "02_gl/04_buffers/01_vertex_buffer"
+
 main :: proc() {
     example.main()
 }
