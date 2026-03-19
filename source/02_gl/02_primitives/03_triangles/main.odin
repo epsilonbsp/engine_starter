@@ -17,8 +17,6 @@ Vertex :: struct {
     color: glm.vec3,
 }
 
-LINE_WIDTH :: 2
-
 vertices := []Vertex {
     {{-126, -130}, {1, 0, 0}},
     {{ 130, -130}, {0, 1, 0}},
