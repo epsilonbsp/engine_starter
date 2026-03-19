@@ -26,7 +26,9 @@ gl
         shader_storage_buffer
         uniform_buffer
     textures
-        texture
+        texture_generation_cpu
+        texture_generation_gpu
+        texture_loading
         mipmap
         array_texture
         bindless_texture
