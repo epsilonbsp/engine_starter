@@ -15,6 +15,7 @@ import example "01_io/01_window"
 
 // import example "02_gl/03_shaders/01_vertex_fragment"
 // import example "02_gl/03_shaders/02_geometry"
+// import example "02_gl/03_shaders/03_tessellation"
 
 main :: proc() {
     example.main()
