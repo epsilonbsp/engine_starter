@@ -37,7 +37,7 @@ Vertex :: struct {
     position: glm.vec3,
     normal: glm.vec3,
     tex_coord: glm.vec2,
-    tangent: glm.vec3
+    tangent: glm.vec3,
 }
 
 light := Light{
