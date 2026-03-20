@@ -71,7 +71,6 @@ gl
         reflection
         emission
         opacity
-        final
     pbr_texture_mapping
         albedo
         normal
@@ -86,7 +85,6 @@ gl
         displacement_tessellation
         emission
         opacity
-        final
     ibl
         diffuse
         specular
