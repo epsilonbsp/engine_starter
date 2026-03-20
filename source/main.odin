@@ -51,6 +51,8 @@ import example "01_io/01_window"
 // import example "05_3d_graphics/06_shadow_mapping/02_point"
 // import example "05_3d_graphics/06_shadow_mapping/03_spot"
 
+// import example "05_3d_graphics/08_trad_texture_mapping/01_diffuse"
+
 main :: proc() {
     example.main()
 }
