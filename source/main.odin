@@ -45,6 +45,7 @@ import example "01_io/01_window"
 
 // import example "05_3d_graphics/05_light_casters/01_directional"
 // import example "05_3d_graphics/05_light_casters/02_point"
+// import example "05_3d_graphics/05_light_casters/03_spot"
 
 main :: proc() {
     example.main()
