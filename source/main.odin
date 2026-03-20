@@ -43,6 +43,8 @@ import example "01_io/01_window"
 // import example "05_3d_graphics/04_environment/02_cubemap_skybox"
 // import example "05_3d_graphics/04_environment/03_simple_fog"
 
+// import example "05_3d_graphics/05_light_casters/01_directional"
+
 main :: proc() {
     example.main()
 }
