@@ -37,6 +37,8 @@ import example "01_io/01_window"
 // import example "05_3d_graphics/01_general/01_camera"
 // import example "05_3d_graphics/01_general/02_transform"
 
+// import example "05_3d_graphics/03_model_loading/01_gltf_primitive"
+
 main :: proc() {
     example.main()
 }
