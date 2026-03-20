@@ -6,7 +6,7 @@ import gl "vendor:OpenGL"
 import glm "core:math/linalg/glsl"
 import sdl "vendor:sdl3"
 
-WINDOW_TITLE :: "Specular"
+WINDOW_TITLE :: "Diffuse"
 WINDOW_WIDTH :: 960
 WINDOW_HEIGHT :: 540
 GL_VERSION_MAJOR :: 4
@@ -182,7 +182,15 @@ load_texture_from_bytes :: proc(bytes: []u8) -> u32 {
 
     tex: u32; gl.GenTextures(1, &tex)
     gl.BindTexture(gl.TEXTURE_2D, tex)
-    gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, i32(image.width), i32(image.height), 0, gl.RGBA, gl.UNSIGNED_BYTE, &image.pixels.buf[0])
+
+    w, h := i32(image.width), i32(image.height)
+
+    if image.depth == 16 {
+        gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA16, w, h, 0, gl.RGBA, gl.UNSIGNED_SHORT, &image.pixels.buf[0])
+    } else {
+        gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA8, w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, &image.pixels.buf[0])
+    }
+
     gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
     gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
     gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
