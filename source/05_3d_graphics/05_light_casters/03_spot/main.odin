@@ -14,7 +14,7 @@ GLSL_VERSION :: "#version 460 core"
 
 Light :: struct {
     position: glm.vec3,
-    direction: glm.vec3,
+    dir: glm.vec3,
     color: glm.vec3,
     constant: f32,
     linear: f32,
@@ -292,7 +292,7 @@ main :: proc() {
         compute_camera_view(&camera)
 
         light.position = camera.position
-        light.direction = glm.normalize(glm.vec3{-camera.view[0][2], -camera.view[1][2], -camera.view[2][2]})
+        light.dir = glm.normalize(glm.vec3{-camera.view[0][2], -camera.view[1][2], -camera.view[2][2]})
 
         gl.Viewport(0, 0, viewport_x, viewport_y)
         gl.ClearColor(0.15, 0.15, 0.15, 1.0)
@@ -300,12 +300,13 @@ main :: proc() {
 
         // Draw meshes
         gl.BindVertexArray(main_vao)
+
         gl.UseProgram(main_pg)
         gl.UniformMatrix4fv(main_uf["u_projection"].location, 1, false, &camera.projection[0][0])
         gl.UniformMatrix4fv(main_uf["u_view"].location, 1, false, &camera.view[0][0])
         gl.Uniform3fv(main_uf["u_view_pos"].location, 1, &camera.position[0])
         gl.Uniform3fv(main_uf["u_light_pos"].location, 1, &light.position[0])
-        gl.Uniform3fv(main_uf["u_light_dir"].location, 1, &light.direction[0])
+        gl.Uniform3fv(main_uf["u_light_dir"].location, 1, &light.dir[0])
         gl.Uniform3fv(main_uf["u_light_color"].location, 1, &light.color[0])
         gl.Uniform1f(main_uf["u_light_constant"].location, light.constant)
         gl.Uniform1f(main_uf["u_light_linear"].location, light.linear)
