@@ -370,7 +370,6 @@ main :: proc() {
         gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
         gl.BindVertexArray(main_vao)
-
         gl.UseProgram(main_pg)
         gl.UniformMatrix4fv(main_uf["u_projection"].location, 1, false, &camera.projection[0][0])
         gl.UniformMatrix4fv(main_uf["u_view"].location, 1, false, &camera.view[0][0])
