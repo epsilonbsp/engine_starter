@@ -65,10 +65,9 @@ gl
         forward
         deferred
     trad_texture_mapping
-        color
         diffuse
         specular
-        bump
+        normal
         reflection
         emission
         opacity
