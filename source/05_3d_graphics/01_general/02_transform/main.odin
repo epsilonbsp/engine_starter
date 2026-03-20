@@ -25,7 +25,7 @@ Material :: struct {
     specular_shine: f32,
 }
 
-Cube :: struct {
+Mesh :: struct {
     translation: glm.vec3,
     rotation: glm.vec3,
     scale: glm.vec3,
@@ -39,10 +39,10 @@ Vertex :: struct {
 
 light := Light{
     glm.normalize(glm.vec3{1, 2, 3}),
-    {1, 0.75, 0.4}
+    {1, 0.8, 0.6}
 }
 
-cube_vertices := []Vertex {
+mesh_vertices := []Vertex {
     // Left
     {{-0.5, -0.5, -0.5}, {-1, 0, 0}},
     {{-0.5, -0.5,  0.5}, {-1, 0, 0}},
@@ -80,7 +80,7 @@ cube_vertices := []Vertex {
     {{-0.5,  0.5,  0.5}, {0, 0, 1}},
 }
 
-cube_indices := []u32 {
+mesh_indices := []u32 {
     // Left
     0, 1, 2, 0, 2, 3,
 
@@ -100,7 +100,7 @@ cube_indices := []u32 {
     20, 21, 22, 20, 22, 23,
 }
 
-cube_index_count := len(cube_indices)
+mesh_index_count := len(mesh_indices)
 
 MAIN_VS :: GLSL_VERSION + `
     layout(location = 0) in vec3 i_position;
@@ -206,7 +206,7 @@ main :: proc() {
 
     main_vbo: u32; gl.GenBuffers(1, &main_vbo); defer gl.DeleteBuffers(1, &main_vbo)
     gl.BindBuffer(gl.ARRAY_BUFFER, main_vbo)
-    gl.BufferData(gl.ARRAY_BUFFER, len(cube_vertices) * size_of(cube_vertices[0]), &cube_vertices[0], gl.STATIC_DRAW)
+    gl.BufferData(gl.ARRAY_BUFFER, len(mesh_vertices) * size_of(mesh_vertices[0]), &mesh_vertices[0], gl.STATIC_DRAW)
 
     gl.EnableVertexAttribArray(0)
     gl.VertexAttribPointer(0, 3, gl.FLOAT, gl.FALSE, size_of(Vertex), 0)
@@ -216,15 +216,18 @@ main :: proc() {
 
     main_ibo: u32; gl.GenBuffers(1, &main_ibo); defer gl.DeleteBuffers(1, &main_ibo)
     gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, main_ibo)
-    gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, cube_index_count * size_of(cube_indices[0]), &cube_indices[0], gl.STATIC_DRAW)
+    gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, mesh_index_count * size_of(mesh_indices[0]), &mesh_indices[0], gl.STATIC_DRAW)
 
-    cubes: [12]Cube
+    meshes: [12]Mesh
 
-    for &cube in cubes {
-        cube.translation = {}
-        cube.rotation = {}
-        cube.scale = {1, 1, 1}
-        cube.material = {{1, 1, 1}, 0.02, 0.9, 0.5, 32.0}
+    for &mesh in meshes {
+        mesh.translation = {}
+        mesh.rotation = {}
+        mesh.scale = {1, 1, 1}
+        mesh.material.ambient_strength = 0.02
+        mesh.material.diffuse_strength = 0.9
+        mesh.material.specular_strength = 0.5
+        mesh.material.specular_shine = 32
     }
 
     camera: Camera;
@@ -277,63 +280,60 @@ main :: proc() {
         gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
         // Translation X
-        cubes[0].translation = {-4 + glm.sin(time_seconds), -2, 4}
-        cubes[0].material.color = {1, 0.2, 0.2}
+        meshes[0].translation = {-4 + glm.sin(time_seconds), -2, 4}
+        meshes[0].material.color = {1, 0.2, 0.2}
 
         // Translation Y
-        cubes[1].translation = {-4, -2 + glm.sin(time_seconds), 0}
-        cubes[1].material.color = {1, 0.4, 0.4}
+        meshes[1].translation = {-4, -2 + glm.sin(time_seconds), 0}
+        meshes[1].material.color = {1, 0.4, 0.4}
 
         // Translation Z
-        cubes[2].translation = {-4, -2, -4 + glm.sin(time_seconds)}
-        cubes[2].material.color = {1, 0.6, 0.6}
+        meshes[2].translation = {-4, -2, -4 + glm.sin(time_seconds)}
+        meshes[2].material.color = {1, 0.6, 0.6}
 
         // Translation XYZ
-        cubes[3].translation = {-4, 2, 0} + glm.sin(time_seconds)
-        cubes[3].material.color = {1, 0.8, 0.8}
+        meshes[3].translation = {-4, 2, 0} + glm.sin(time_seconds)
+        meshes[3].material.color = {1, 0.8, 0.8}
 
         // Rotation X
-        cubes[4].translation = {0, -2, 4}
-        cubes[4].rotation = {time_seconds, 0, 0}
-        cubes[4].material.color = {0.2, 1, 0.2}
+        meshes[4].translation = {0, -2, 4}
+        meshes[4].rotation = {time_seconds, 0, 0}
+        meshes[4].material.color = {0.2, 1, 0.2}
 
         // Rotation Y
-        cubes[5].translation = {0, -2, 0}
-        cubes[5].rotation = {0, time_seconds, 0}
-        cubes[5].material.color = {0.4, 1, 0.4}
+        meshes[5].translation = {0, -2, 0}
+        meshes[5].rotation = {0, time_seconds, 0}
+        meshes[5].material.color = {0.4, 1, 0.4}
 
         // Rotation Z
-        cubes[6].translation = {0, -2, -4}
-        cubes[6].rotation = {0, 0, time_seconds}
-        cubes[6].material.color = {0.6, 1, 0.6}
+        meshes[6].translation = {0, -2, -4}
+        meshes[6].rotation = {0, 0, time_seconds}
+        meshes[6].material.color = {0.6, 1, 0.6}
 
         // Rotation XYZ
-        cubes[7].translation = {0, 2, 0}
-        cubes[7].rotation = {time_seconds, time_seconds, time_seconds}
-        cubes[7].material.color = {0.8, 1, 0.8}
+        meshes[7].translation = {0, 2, 0}
+        meshes[7].rotation = {time_seconds, time_seconds, time_seconds}
+        meshes[7].material.color = {0.8, 1, 0.8}
 
         // Scale X
-        cubes[8].translation = {4, -2, 4}
-        cubes[8].scale = {1 + glm.sin(time_seconds) / 2, 1, 1}
-        cubes[8].material.color = {0.2, 0.2, 1}
+        meshes[8].translation = {4, -2, 4}
+        meshes[8].scale = {1 + glm.sin(time_seconds) / 2, 1, 1}
+        meshes[8].material.color = {0.2, 0.2, 1}
 
         // Scale Y
-        cubes[9].translation = {4, -2, 0}
-        cubes[9].scale = {1, 1 + glm.sin(time_seconds) / 2, 1}
-        cubes[9].material.color = {0.4, 0.4, 1}
+        meshes[9].translation = {4, -2, 0}
+        meshes[9].scale = {1, 1 + glm.sin(time_seconds) / 2, 1}
+        meshes[9].material.color = {0.4, 0.4, 1}
 
         // Scale Z
-        cubes[10].translation = {4, -2, -4}
-        cubes[10].scale = {1, 1, 1 + glm.sin(time_seconds) / 2}
-        cubes[10].material.color = {0.6, 0.6, 1}
+        meshes[10].translation = {4, -2, -4}
+        meshes[10].scale = {1, 1, 1 + glm.sin(time_seconds) / 2}
+        meshes[10].material.color = {0.6, 0.6, 1}
 
         // Scale XYZ
-        cubes[11].translation = {4, 2, 0}
-        cubes[11].scale = {1, 1, 1} + glm.sin(time_seconds) / 2
-        cubes[11].material.color = {0.8, 0.8, 1}
-
-        // Draw cubes
-        gl.BindVertexArray(main_vao)
+        meshes[11].translation = {4, 2, 0}
+        meshes[11].scale = {1, 1, 1} + glm.sin(time_seconds) / 2
+        meshes[11].material.color = {0.8, 0.8, 1}
 
         gl.UseProgram(main_pg)
         gl.UniformMatrix4fv(main_uf["u_projection"].location, 1, false, &camera.projection[0][0])
@@ -342,18 +342,19 @@ main :: proc() {
         gl.Uniform3fv(main_uf["u_light_dir"].location, 1, &light.dir[0])
         gl.Uniform3fv(main_uf["u_light_color"].location, 1, &light.color[0])
 
-        for &cube in cubes {
-            model := make_transform(cube.translation, cube.rotation, cube.scale)
+        for &mesh in meshes {
+            model := make_transform(mesh.translation, mesh.rotation, mesh.scale)
             normal_matrix := glm.transpose(glm.inverse(glm.mat3(model)))
 
             gl.UniformMatrix4fv(main_uf["u_model"].location, 1, false, &model[0][0])
             gl.UniformMatrix3fv(main_uf["u_normal_matrix"].location, 1, false, &normal_matrix[0][0])
-            gl.Uniform3fv(main_uf["u_mat_color"].location, 1, &cube.material.color[0])
-            gl.Uniform1f(main_uf["u_mat_ambient_strength"].location, cube.material.ambient_strength)
-            gl.Uniform1f(main_uf["u_mat_diffuse_strength"].location, cube.material.diffuse_strength)
-            gl.Uniform1f(main_uf["u_mat_specular_strength"].location, cube.material.specular_strength)
-            gl.Uniform1f(main_uf["u_mat_specular_shine"].location, cube.material.specular_shine)
-            gl.DrawElements(gl.TRIANGLES, i32(cube_index_count), gl.UNSIGNED_INT, nil)
+            gl.Uniform3fv(main_uf["u_mat_color"].location, 1, &mesh.material.color[0])
+            gl.Uniform1f(main_uf["u_mat_ambient_strength"].location, mesh.material.ambient_strength)
+            gl.Uniform1f(main_uf["u_mat_diffuse_strength"].location, mesh.material.diffuse_strength)
+            gl.Uniform1f(main_uf["u_mat_specular_strength"].location, mesh.material.specular_strength)
+            gl.Uniform1f(main_uf["u_mat_specular_shine"].location, mesh.material.specular_shine)
+
+            gl.DrawElements(gl.TRIANGLES, i32(mesh_index_count), gl.UNSIGNED_INT, nil)
         }
 
         sdl.GL_SwapWindow(window)
