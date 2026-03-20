@@ -73,10 +73,10 @@ skybox := Skybox{
 }
 
 meshes := []Mesh {
-    {{ 0, -1,  0}, {0, 0, 0}, {40, 2,  40}, {{0.6, 0.6, 0.6}, 0.05, 0.8, 0.1, 8.0  }},
-    {{-8,  4, -8}, {0, 0, 0}, {2,  8,  2 }, {{0.2, 0.4, 0.8}, 0.02, 0.9, 0.5, 32.0 }},
-    {{-4,  8,  4}, {0, 0, 0}, {4,  16, 4 }, {{0.8, 0.5, 0.3}, 0.02, 1.0, 0.0, 1.0  }},
-    {{ 8,  2,  0}, {0, 0, 0}, {2,  4,  2 }, {{0.7, 0.7, 0.7}, 0.02, 0.6, 1.0, 256.0}},
+    {{ 0, -1,  0}, {}, {40, 2,  40}, {{0.6, 0.6, 0.6}, 0.05, 0.8, 0.1, 8.0  }},
+    {{-8,  4, -8}, {}, {2,  8,  2 }, {{0.2, 0.4, 0.8}, 0.02, 0.9, 0.5, 32.0 }},
+    {{-4,  8,  4}, {}, {4,  16, 4 }, {{0.8, 0.5, 0.3}, 0.02, 1.0, 0.0, 1.0  }},
+    {{ 8,  2,  0}, {}, {2,  4,  2 }, {{0.7, 0.7, 0.7}, 0.02, 0.6, 1.0, 256.0}},
 }
 
 mesh_vertices := []Vertex {
@@ -205,9 +205,9 @@ MAIN_FS :: GLSL_VERSION + `
         for (int x = -PCF_RADIUS; x <= PCF_RADIUS; x++) {
             for (int y = -PCF_RADIUS; y <= PCF_RADIUS; y++) {
                 // Depth of the nearest occluder at this sample offset
-                float pcf_depth = texture(u_shadow_map, proj_coords.xy + vec2(x, y) * texel_size).r;
+                float closest_depth = texture(u_shadow_map, proj_coords.xy + vec2(x, y) * texel_size).r;
                 // Accumulate shadow, 1.0 = in shadow, 0.0 = lit
-                shadow += proj_coords.z - bias > pcf_depth ? 1.0 : 0.0;
+                shadow += proj_coords.z - bias > closest_depth ? 1.0 : 0.0;
             }
         }
 
@@ -505,10 +505,6 @@ main :: proc() {
 
         gl.BindVertexArray(main_vao)
 
-        gl.ActiveTexture(gl.TEXTURE0)
-        gl.BindTexture(gl.TEXTURE_2D, depth_tex)
-        gl.Uniform1i(main_uf["u_shadow_map"].location, 0)
-
         gl.UseProgram(main_pg)
         gl.UniformMatrix4fv(main_uf["u_projection"].location, 1, false, &camera.projection[0][0])
         gl.UniformMatrix4fv(main_uf["u_view"].location, 1, false, &camera.view[0][0])
@@ -516,6 +512,10 @@ main :: proc() {
         gl.Uniform3fv(main_uf["u_light_dir"].location, 1, &light.dir[0])
         gl.Uniform3fv(main_uf["u_light_color"].location, 1, &light.color[0])
         gl.UniformMatrix4fv(main_uf["u_light_space"].location, 1, false, &light_space[0][0])
+
+        gl.ActiveTexture(gl.TEXTURE0)
+        gl.BindTexture(gl.TEXTURE_2D, depth_tex)
+        gl.Uniform1i(main_uf["u_shadow_map"].location, 0)
 
         for &mesh in meshes {
             model := make_transform(mesh.translation, mesh.rotation, mesh.scale)
