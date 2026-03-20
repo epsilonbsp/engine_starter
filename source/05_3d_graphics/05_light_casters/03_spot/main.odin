@@ -182,28 +182,6 @@ MAIN_FS :: GLSL_VERSION + `
     }
 `
 
-LIGHT_VS :: GLSL_VERSION + `
-    layout(location = 0) in vec3 i_position;
-
-    uniform mat4 u_projection;
-    uniform mat4 u_view;
-    uniform mat4 u_model;
-
-    void main() {
-        gl_Position = u_projection * u_view * u_model * vec4(i_position, 1.0);
-    }
-`
-
-LIGHT_FS :: GLSL_VERSION + `
-    out vec4 o_frag_color;
-
-    uniform vec3 u_color;
-
-    void main() {
-        o_frag_color = vec4(u_color, 1.0);
-    }
-`
-
 make_transform :: proc(translation: glm.vec3, rotation: glm.vec3, scale: glm.vec3) -> glm.mat4 {
     qx := glm.quatAxisAngle({1, 0, 0}, rotation.x)
     qy := glm.quatAxisAngle({0, 1, 0}, rotation.y)
@@ -252,15 +230,6 @@ main :: proc() {
         return
     }
 
-    light_pg, light_ok := gl.load_shaders_source(LIGHT_VS, LIGHT_FS); defer gl.DeleteProgram(light_pg)
-    light_uf := gl.get_uniforms_from_program(light_pg); defer gl.destroy_uniforms(light_uf)
-
-    if !light_ok {
-        fmt.printf("PROGRAM ERROR: %s\n", gl.get_last_error_message())
-
-        return
-    }
-
     main_vao: u32; gl.GenVertexArrays(1, &main_vao); defer gl.DeleteVertexArrays(1, &main_vao)
     gl.BindVertexArray(main_vao)
 
@@ -291,7 +260,6 @@ main :: proc() {
         time_curr = u64(sdl.GetTicks())
         time_delta = f32(time_curr - time_last) / 1000
         time_last = time_curr
-        time_seconds := f32(time_curr) / 1000
 
         event: sdl.Event
 
@@ -359,16 +327,6 @@ main :: proc() {
 
             gl.DrawElements(gl.TRIANGLES, i32(mesh_index_count), gl.UNSIGNED_INT, nil)
         }
-
-        // Draw light cube
-        light_model := make_transform(light.position, {}, {0.3, 0.3, 0.3})
-
-        gl.UseProgram(light_pg)
-        gl.UniformMatrix4fv(light_uf["u_projection"].location, 1, false, &camera.projection[0][0])
-        gl.UniformMatrix4fv(light_uf["u_view"].location, 1, false, &camera.view[0][0])
-        gl.UniformMatrix4fv(light_uf["u_model"].location, 1, false, &light_model[0][0])
-        gl.Uniform3fv(light_uf["u_color"].location, 1, &light.color[0])
-        gl.DrawElements(gl.TRIANGLES, i32(mesh_index_count), gl.UNSIGNED_INT, nil)
 
         sdl.GL_SwapWindow(window)
     }
