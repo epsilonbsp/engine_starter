@@ -137,6 +137,8 @@ MAIN_VS :: GLSL_VERSION + `
 `
 
 MAIN_FS :: GLSL_VERSION + `
+    #define LIGHTS_CAP 4
+
     in vec3 v_normal;
     in vec3 v_world_pos;
 
@@ -149,8 +151,6 @@ MAIN_FS :: GLSL_VERSION + `
         float linear;
         float quadratic;
     };
-
-    const int LIGHTS_CAP = 4;
 
     uniform vec3 u_view_pos;
     uniform Light u_lights[LIGHTS_CAP];
