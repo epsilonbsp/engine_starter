@@ -55,7 +55,6 @@ gl
         directional
         point
         spot
-        combined
     shadow_mapping
         directional
         point
@@ -71,13 +70,14 @@ gl
         reflection
         emission
         opacity
+    pbr
+        surface_model
     pbr_texture_mapping
         albedo
         normal
         roughness
         metallic
         ambient_occlusion
-        height
         parallax
         parallax_steep
         parallax_occlusion_mapping
