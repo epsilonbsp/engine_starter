@@ -220,12 +220,18 @@ LIGHTING_FS :: GLSL_VERSION + `
     uniform sampler2D u_g_material;
     uniform vec3 u_view_pos;
     uniform Light u_lights[LIGHTS_CAP];
+    uniform int u_debug_buffer;
 
     void main() {
         vec3 world_pos = texture(u_g_position, v_tex_coord).rgb;
         vec3 normal = texture(u_g_normal, v_tex_coord).rgb;
         vec3 albedo = texture(u_g_albedo, v_tex_coord).rgb;
         vec4 material = texture(u_g_material, v_tex_coord);
+
+        if (u_debug_buffer == 1) { o_frag_color = vec4(world_pos, 1.0); return; }
+        if (u_debug_buffer == 2) { o_frag_color = vec4(normal * 0.5 + 0.5, 1.0); return; }
+        if (u_debug_buffer == 3) { o_frag_color = vec4(albedo, 1.0); return; }
+        if (u_debug_buffer == 4) { o_frag_color = vec4(material.rgb, 1.0); return; }
 
         float ambient_strength = material.r;
         float diffuse_strength = material.g;
@@ -439,6 +445,8 @@ main :: proc() {
 
     camera_movement := Camera_Movement{move_speed = 5, yaw_speed = 0.002, pitch_speed = 0.002}
 
+    debug_buffer: i32 = 0
+
     gl.Enable(gl.DEPTH_TEST)
     gl.Enable(gl.CULL_FACE)
 
@@ -460,6 +468,10 @@ main :: proc() {
             case .KEY_DOWN:
                 if event.key.scancode == sdl.Scancode.ESCAPE {
                     _ = sdl.SetWindowRelativeMouseMode(window, !sdl.GetWindowRelativeMouseMode(window))
+                }
+
+                if event.key.scancode >= sdl.Scancode._1 && event.key.scancode <= sdl.Scancode._5 {
+                    debug_buffer = i32(event.key.scancode - sdl.Scancode._1)
                 }
             case .MOUSE_MOTION:
                 if sdl.GetWindowRelativeMouseMode(window) {
@@ -527,6 +539,7 @@ main :: proc() {
         gl.Uniform1i(lighting_uf["u_g_albedo"].location, 2)
         gl.Uniform1i(lighting_uf["u_g_material"].location, 3)
         gl.Uniform3fv(lighting_uf["u_view_pos"].location, 1, &camera.position[0])
+        gl.Uniform1i(lighting_uf["u_debug_buffer"].location, debug_buffer)
 
         for i in 0 ..< LIGHTS_CAP {
             gl.Uniform3fv(light_locs[i].position, 1, &lights[i].position[0])
