@@ -315,7 +315,7 @@ main :: proc() {
 
     skybox_tex := load_cubemap(); defer gl.DeleteTextures(1, &skybox_tex)
 
-    camera: Camera;
+    camera: Camera
     init_camera(&camera, position = {6, 6, 6})
     point_camera_at(&camera, {})
 

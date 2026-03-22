@@ -321,7 +321,7 @@ main :: proc() {
     skybox_vao: u32; gl.GenVertexArrays(1, &skybox_vao); defer gl.DeleteVertexArrays(1, &skybox_vao)
     gl.BindVertexArray(skybox_vao)
 
-    camera: Camera;
+    camera: Camera
     init_camera(&camera, position = {6, 6, 6})
     point_camera_at(&camera, {})
 

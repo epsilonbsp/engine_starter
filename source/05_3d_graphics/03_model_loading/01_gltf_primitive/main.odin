@@ -161,7 +161,7 @@ main :: proc() {
     meshes[1].primitive = sphere_prim
     meshes[2].primitive = cylinder_prim
 
-    camera: Camera;
+    camera: Camera
     init_camera(&camera, position = {6, 6, 6})
     point_camera_at(&camera, {})
 

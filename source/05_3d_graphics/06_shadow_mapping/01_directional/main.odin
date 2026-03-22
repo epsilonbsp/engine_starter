@@ -411,7 +411,7 @@ main :: proc() {
     gl.ReadBuffer(gl.NONE)
     gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
 
-    camera: Camera;
+    camera: Camera
     init_camera(&camera, position = {6, 6, 6})
     point_camera_at(&camera, {})
 

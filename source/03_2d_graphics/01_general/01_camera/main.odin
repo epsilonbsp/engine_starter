@@ -108,7 +108,7 @@ main :: proc() {
     main_vao: u32; gl.GenVertexArrays(1, &main_vao); defer gl.DeleteVertexArrays(1, &main_vao)
     gl.BindVertexArray(main_vao)
 
-    camera: Camera;
+    camera: Camera
     init_camera(&camera)
 
     camera_movement := Camera_Movement{move_speed = 200, zoom_speed = 5}

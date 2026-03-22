@@ -328,7 +328,7 @@ main :: proc() {
     roughness_tex := load_texture_from_bytes(#load("textures/roughness.png")); defer gl.DeleteTextures(1, &roughness_tex)
     ao_tex := load_texture_from_bytes(#load("textures/ao.png")); defer gl.DeleteTextures(1, &ao_tex)
 
-    camera: Camera;
+    camera: Camera
     init_camera(&camera, position = {6, 6, 6})
     point_camera_at(&camera, {})
 

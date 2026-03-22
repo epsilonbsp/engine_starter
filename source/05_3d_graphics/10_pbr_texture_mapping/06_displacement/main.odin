@@ -358,7 +358,7 @@ main :: proc() {
     normal_tex := load_texture_from_bytes(#load("textures/normal.png")); defer gl.DeleteTextures(1, &normal_tex)
     displacement_tex := load_texture_from_bytes(#load("textures/displacement.png")); defer gl.DeleteTextures(1, &displacement_tex)
 
-    camera: Camera;
+    camera: Camera
     init_camera(&camera, position = {6, 6, 6})
     point_camera_at(&camera, {})
 

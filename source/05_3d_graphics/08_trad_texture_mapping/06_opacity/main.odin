@@ -264,7 +264,7 @@ main :: proc() {
     diffuse_tex := load_texture_from_bytes(#load("textures/diffuse.png")); defer gl.DeleteTextures(1, &diffuse_tex)
     opacity_tex := load_texture_from_bytes(#load("textures/opacity.png")); defer gl.DeleteTextures(1, &opacity_tex)
 
-    camera: Camera;
+    camera: Camera
     init_camera(&camera, position = {6, 6, 6})
     point_camera_at(&camera, {})
 

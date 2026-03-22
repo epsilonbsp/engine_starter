@@ -230,7 +230,7 @@ main :: proc() {
         mesh.material.specular_shine = 32
     }
 
-    camera: Camera;
+    camera: Camera
     init_camera(&camera, position = {6, 6, 6})
     point_camera_at(&camera, {})
 
