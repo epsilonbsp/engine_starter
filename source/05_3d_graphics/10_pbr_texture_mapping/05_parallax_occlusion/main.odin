@@ -55,10 +55,10 @@ meshes := []Mesh {
 
 mesh_vertices := []Vertex {
     // Left
-    {{-0.5, -0.5, -0.5}, {-1, 0, 0}, {0, 1}, { 0, 0, 1, -1}},
-    {{-0.5, -0.5,  0.5}, {-1, 0, 0}, {1, 1}, { 0, 0, 1, -1}},
-    {{-0.5,  0.5,  0.5}, {-1, 0, 0}, {1, 0}, { 0, 0, 1, -1}},
-    {{-0.5,  0.5, -0.5}, {-1, 0, 0}, {0, 0}, { 0, 0, 1, -1}},
+    {{-0.5, -0.5, -0.5}, {-1, 0, 0}, {0, 1}, {0, 0, 1, -1}},
+    {{-0.5, -0.5,  0.5}, {-1, 0, 0}, {1, 1}, {0, 0, 1, -1}},
+    {{-0.5,  0.5,  0.5}, {-1, 0, 0}, {1, 0}, {0, 0, 1, -1}},
+    {{-0.5,  0.5, -0.5}, {-1, 0, 0}, {0, 0}, {0, 0, 1, -1}},
 
     // Right
     {{ 0.5, -0.5,  0.5}, {1, 0, 0}, {0, 1}, {0, 0, -1, -1}},
@@ -366,7 +366,7 @@ main :: proc() {
     gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, main_ibo)
     gl.BufferData(gl.ELEMENT_ARRAY_BUFFER, mesh_index_count * size_of(mesh_indices[0]), &mesh_indices[0], gl.STATIC_DRAW)
 
-    // Source: https://polyhaven.com/a/rusty_metal_04
+    // Source: https://polyhaven.com/a/ganges_river_pebbles
     albedo_tex := load_texture_from_bytes(#load("textures/albedo.png"), true); defer gl.DeleteTextures(1, &albedo_tex)
     arm_tex := load_texture_from_bytes(#load("textures/arm.png")); defer gl.DeleteTextures(1, &arm_tex)
     normal_tex := load_texture_from_bytes(#load("textures/normal.png")); defer gl.DeleteTextures(1, &normal_tex)

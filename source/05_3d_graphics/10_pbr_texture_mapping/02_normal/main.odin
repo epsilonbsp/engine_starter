@@ -36,7 +36,7 @@ Vertex :: struct {
     position: glm.vec3,
     normal: glm.vec3,
     tex_coord: glm.vec2,
-    tangent: glm.vec3,
+    tangent: glm.vec4,
 }
 
 light := Light{
@@ -54,40 +54,40 @@ meshes := []Mesh {
 
 mesh_vertices := []Vertex {
     // Left
-    {{-0.5, -0.5, -0.5}, {-1, 0, 0}, {0, 1}, { 0, 0, 1}},
-    {{-0.5, -0.5,  0.5}, {-1, 0, 0}, {1, 1}, { 0, 0, 1}},
-    {{-0.5,  0.5,  0.5}, {-1, 0, 0}, {1, 0}, { 0, 0, 1}},
-    {{-0.5,  0.5, -0.5}, {-1, 0, 0}, {0, 0}, { 0, 0, 1}},
+    {{-0.5, -0.5, -0.5}, {-1, 0, 0}, {0, 1}, {0, 0, 1, -1}},
+    {{-0.5, -0.5,  0.5}, {-1, 0, 0}, {1, 1}, {0, 0, 1, -1}},
+    {{-0.5,  0.5,  0.5}, {-1, 0, 0}, {1, 0}, {0, 0, 1, -1}},
+    {{-0.5,  0.5, -0.5}, {-1, 0, 0}, {0, 0}, {0, 0, 1, -1}},
 
     // Right
-    {{ 0.5, -0.5,  0.5}, {1, 0, 0}, {0, 1}, {0, 0, -1}},
-    {{ 0.5, -0.5, -0.5}, {1, 0, 0}, {1, 1}, {0, 0, -1}},
-    {{ 0.5,  0.5, -0.5}, {1, 0, 0}, {1, 0}, {0, 0, -1}},
-    {{ 0.5,  0.5,  0.5}, {1, 0, 0}, {0, 0}, {0, 0, -1}},
+    {{ 0.5, -0.5,  0.5}, {1, 0, 0}, {0, 1}, {0, 0, -1, -1}},
+    {{ 0.5, -0.5, -0.5}, {1, 0, 0}, {1, 1}, {0, 0, -1, -1}},
+    {{ 0.5,  0.5, -0.5}, {1, 0, 0}, {1, 0}, {0, 0, -1, -1}},
+    {{ 0.5,  0.5,  0.5}, {1, 0, 0}, {0, 0}, {0, 0, -1, -1}},
 
     // Bottom
-    {{-0.5, -0.5, -0.5}, {0, -1, 0}, {0, 1}, {1, 0, 0}},
-    {{ 0.5, -0.5, -0.5}, {0, -1, 0}, {1, 1}, {1, 0, 0}},
-    {{ 0.5, -0.5,  0.5}, {0, -1, 0}, {1, 0}, {1, 0, 0}},
-    {{-0.5, -0.5,  0.5}, {0, -1, 0}, {0, 0}, {1, 0, 0}},
+    {{-0.5, -0.5, -0.5}, {0, -1, 0}, {0, 1}, {1, 0, 0, -1}},
+    {{ 0.5, -0.5, -0.5}, {0, -1, 0}, {1, 1}, {1, 0, 0, -1}},
+    {{ 0.5, -0.5,  0.5}, {0, -1, 0}, {1, 0}, {1, 0, 0, -1}},
+    {{-0.5, -0.5,  0.5}, {0, -1, 0}, {0, 0}, {1, 0, 0, -1}},
 
     // Top
-    {{-0.5,  0.5,  0.5}, {0, 1, 0}, {0, 1}, {1, 0, 0}},
-    {{ 0.5,  0.5,  0.5}, {0, 1, 0}, {1, 1}, {1, 0, 0}},
-    {{ 0.5,  0.5, -0.5}, {0, 1, 0}, {1, 0}, {1, 0, 0}},
-    {{-0.5,  0.5, -0.5}, {0, 1, 0}, {0, 0}, {1, 0, 0}},
+    {{-0.5,  0.5,  0.5}, {0, 1, 0}, {0, 1}, {1, 0, 0, -1}},
+    {{ 0.5,  0.5,  0.5}, {0, 1, 0}, {1, 1}, {1, 0, 0, -1}},
+    {{ 0.5,  0.5, -0.5}, {0, 1, 0}, {1, 0}, {1, 0, 0, -1}},
+    {{-0.5,  0.5, -0.5}, {0, 1, 0}, {0, 0}, {1, 0, 0, -1}},
 
     // Back
-    {{ 0.5, -0.5, -0.5}, {0, 0, -1}, {0, 1}, {-1, 0, 0}},
-    {{-0.5, -0.5, -0.5}, {0, 0, -1}, {1, 1}, {-1, 0, 0}},
-    {{-0.5,  0.5, -0.5}, {0, 0, -1}, {1, 0}, {-1, 0, 0}},
-    {{ 0.5,  0.5, -0.5}, {0, 0, -1}, {0, 0}, {-1, 0, 0}},
+    {{ 0.5, -0.5, -0.5}, {0, 0, -1}, {0, 1}, {-1, 0, 0, -1}},
+    {{-0.5, -0.5, -0.5}, {0, 0, -1}, {1, 1}, {-1, 0, 0, -1}},
+    {{-0.5,  0.5, -0.5}, {0, 0, -1}, {1, 0}, {-1, 0, 0, -1}},
+    {{ 0.5,  0.5, -0.5}, {0, 0, -1}, {0, 0}, {-1, 0, 0, -1}},
 
     // Front
-    {{-0.5, -0.5,  0.5}, {0, 0, 1}, {0, 1}, {1, 0, 0}},
-    {{ 0.5, -0.5,  0.5}, {0, 0, 1}, {1, 1}, {1, 0, 0}},
-    {{ 0.5,  0.5,  0.5}, {0, 0, 1}, {1, 0}, {1, 0, 0}},
-    {{-0.5,  0.5,  0.5}, {0, 0, 1}, {0, 0}, {1, 0, 0}},
+    {{-0.5, -0.5,  0.5}, {0, 0, 1}, {0, 1}, {1, 0, 0, -1}},
+    {{ 0.5, -0.5,  0.5}, {0, 0, 1}, {1, 1}, {1, 0, 0, -1}},
+    {{ 0.5,  0.5,  0.5}, {0, 0, 1}, {1, 0}, {1, 0, 0, -1}},
+    {{-0.5,  0.5,  0.5}, {0, 0, 1}, {0, 0}, {1, 0, 0, -1}},
 }
 
 mesh_indices := []u32 {
@@ -116,7 +116,7 @@ MAIN_VS :: GLSL_VERSION + `
     layout(location = 0) in vec3 i_position;
     layout(location = 1) in vec3 i_normal;
     layout(location = 2) in vec2 i_tex_coord;
-    layout(location = 3) in vec3 i_tangent;
+    layout(location = 3) in vec4 i_tangent;
 
     out vec3 v_normal;
     out vec2 v_tex_coord;
@@ -132,9 +132,9 @@ MAIN_VS :: GLSL_VERSION + `
         vec4 world_pos = u_model * vec4(i_position, 1.0);
 
         vec3 normal = normalize(u_normal_matrix * i_normal);
-        vec3 tangent = normalize(u_normal_matrix * i_tangent);
+        vec3 tangent = normalize(u_normal_matrix * i_tangent.xyz);
         tangent = normalize(tangent - dot(tangent, normal) * normal);
-        vec3 bitangent = cross(normal, tangent);
+        vec3 bitangent = cross(normal, tangent) * i_tangent.w;
 
         gl_Position = u_projection * u_view * world_pos;
         v_normal = u_normal_matrix * i_normal;
@@ -265,7 +265,8 @@ load_texture_from_bytes :: proc(bytes: []u8, srgb := false) -> u32 {
         gl.TexImage2D(gl.TEXTURE_2D, 0, i32(internal_format), w, h, 0, gl.RGBA, gl.UNSIGNED_BYTE, &image.pixels.buf[0])
     }
 
-    gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
+    gl.GenerateMipmap(gl.TEXTURE_2D)
+    gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
     gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
     gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT)
     gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT)
@@ -329,7 +330,7 @@ main :: proc() {
     gl.VertexAttribPointer(2, 2, gl.FLOAT, gl.FALSE, size_of(Vertex), offset_of(Vertex, tex_coord))
 
     gl.EnableVertexAttribArray(3)
-    gl.VertexAttribPointer(3, 3, gl.FLOAT, gl.FALSE, size_of(Vertex), offset_of(Vertex, tangent))
+    gl.VertexAttribPointer(3, 4, gl.FLOAT, gl.FALSE, size_of(Vertex), offset_of(Vertex, tangent))
 
     main_ibo: u32; gl.GenBuffers(1, &main_ibo); defer gl.DeleteBuffers(1, &main_ibo)
     gl.BindBuffer(gl.ELEMENT_ARRAY_BUFFER, main_ibo)
