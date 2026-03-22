@@ -159,7 +159,7 @@ MAIN_FS :: GLSL_VERSION + `
     float geometry_schlick_ggx(float n_dot_v, float roughness) {
         float k = (roughness + 1.0);
         k = (k * k) / 8.0;
-    
+
         return n_dot_v / (n_dot_v * (1.0 - k) + k);
     }
 
