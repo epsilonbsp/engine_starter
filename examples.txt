@@ -73,11 +73,8 @@ gl
     pbr
         surface_model
     pbr_texture_mapping
-        albedo
+        material
         normal
-        roughness
-        metallic
-        ambient_occlusion
         parallax
         parallax_steep
         parallax_occlusion_mapping
