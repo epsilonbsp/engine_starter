@@ -15,6 +15,11 @@ GL_VERSION_MAJOR :: 4
 GL_VERSION_MINOR :: 6
 GLSL_VERSION :: "#version 460 core"
 
+Light :: struct {
+    dir: glm.vec3,
+    color: glm.vec3,
+}
+
 Material :: struct {
     albedo: glm.vec3,
     metallic: f32,
@@ -36,6 +41,12 @@ Vertex :: struct {
     tangent: glm.vec4,
 }
 
+light := Light{
+    glm.normalize(glm.vec3{0.77718979, 0.104321375, 0.62055874}),
+    {1, 1, 1},
+}
+
+light_intensity := f32(0.0)
 exposure := f32(1.0)
 
 meshes := []Mesh {
@@ -145,6 +156,9 @@ MAIN_FS :: GLSL_VERSION + `
     out vec4 o_frag_color;
 
     uniform vec3 u_view_pos;
+    uniform vec3 u_light_dir;
+    uniform vec3 u_light_color;
+    uniform float u_light_intensity;
     uniform float u_exposure;
     uniform vec3 u_mat_albedo;
     uniform float u_mat_metallic;
@@ -157,7 +171,31 @@ MAIN_FS :: GLSL_VERSION + `
     uniform samplerCube u_prefilter_map;
     uniform sampler2D u_brdf_lut;
 
+    const float PI = 3.14159265359;
     const float MAX_REFLECTION_LOD = 4.0;
+
+    float distribution_ggx(vec3 n, vec3 h, float roughness) {
+        float a = roughness * roughness;
+        float a2 = a * a;
+        float n_dot_h = max(dot(n, h), 0.0);
+        float denom = (n_dot_h * n_dot_h * (a2 - 1.0) + 1.0);
+
+        return a2 / (PI * denom * denom);
+    }
+
+    float geometry_schlick_ggx(float n_dot_v, float roughness) {
+        float k = (roughness + 1.0);
+        k = (k * k) / 8.0;
+
+        return n_dot_v / (n_dot_v * (1.0 - k) + k);
+    }
+
+    float geometry_smith(vec3 n, vec3 v, vec3 l, float roughness) {
+        float nv = geometry_schlick_ggx(max(dot(n, v), 0.0), roughness);
+        float nl = geometry_schlick_ggx(max(dot(n, l), 0.0), roughness);
+
+        return nv * nl;
+    }
 
     vec3 fresnel_schlick(float cos_theta, vec3 f0) {
         return f0 + (1.0 - f0) * pow(clamp(1.0 - cos_theta, 0.0, 1.0), 5.0);
@@ -177,10 +215,22 @@ MAIN_FS :: GLSL_VERSION + `
         vec3 n = texture(u_normal_tex, v_tex_coord).rgb * 2.0 - 1.0;
         n = normalize(v_tbn * n);
         vec3 v = normalize(u_view_pos - v_world_pos);
+        vec3 l = normalize(u_light_dir);
+        vec3 h = normalize(v + l);
         vec3 r = reflect(-v, n);
         float n_dot_v = max(dot(n, v), 0.0);
 
         vec3 f0 = mix(vec3(0.04), albedo, metallic);
+
+        // Direct light
+        float ndf = distribution_ggx(n, h, roughness);
+        float g = geometry_smith(n, v, l, roughness);
+        vec3 f = fresnel_schlick(clamp(dot(h, v), 0.0, 1.0), f0);
+        vec3 kd_direct = (vec3(1.0) - f) * (1.0 - metallic);
+        vec3 specular_direct = (ndf * g * f) / (4.0 * n_dot_v * max(dot(n, l), 0.0) + 0.0001);
+        vec3 lo = (kd_direct * albedo / PI + specular_direct) * u_light_color * max(dot(n, l), 0.0) * u_light_intensity;
+
+        // IBL ambient
         vec3 ks = fresnel_schlick_roughness(n_dot_v, f0, roughness);
         vec3 kd = (vec3(1.0) - ks) * (1.0 - metallic);
 
@@ -193,7 +243,7 @@ MAIN_FS :: GLSL_VERSION + `
         vec2 brdf = texture(u_brdf_lut, vec2(n_dot_v, roughness)).rg;
         vec3 specular = prefiltered * (ks * brdf.x + brdf.y);
 
-        vec3 color = (diffuse + specular) * ao;
+        vec3 color = (diffuse + specular) * ao + lo;
 
         // Exposure tone mapping
         color = vec3(1.0) - exp(-color * u_exposure);
@@ -878,6 +928,9 @@ main :: proc() {
         gl.UniformMatrix4fv(main_uf["u_projection"].location, 1, false, &camera.projection[0][0])
         gl.UniformMatrix4fv(main_uf["u_view"].location, 1, false, &camera.view[0][0])
         gl.Uniform3fv(main_uf["u_view_pos"].location, 1, &camera.position[0])
+        gl.Uniform3fv(main_uf["u_light_dir"].location, 1, &light.dir[0])
+        gl.Uniform3fv(main_uf["u_light_color"].location, 1, &light.color[0])
+        gl.Uniform1f(main_uf["u_light_intensity"].location, light_intensity)
         gl.Uniform1f(main_uf["u_exposure"].location, exposure)
 
         gl.ActiveTexture(gl.TEXTURE0)

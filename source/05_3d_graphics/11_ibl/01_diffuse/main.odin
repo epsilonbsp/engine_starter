@@ -15,6 +15,11 @@ GL_VERSION_MAJOR :: 4
 GL_VERSION_MINOR :: 6
 GLSL_VERSION :: "#version 460 core"
 
+Light :: struct {
+    dir: glm.vec3,
+    color: glm.vec3,
+}
+
 Material :: struct {
     albedo: glm.vec3,
     metallic: f32,
@@ -36,7 +41,13 @@ Vertex :: struct {
     tangent: glm.vec4,
 }
 
-exposure := f32(2.0)
+light := Light{
+    glm.normalize(glm.vec3{0.58795315, 0.110293895, 0.80134034}),
+    {1, 1, 1},
+}
+
+light_intensity := f32(0.0)
+exposure := f32(1.0)
 
 meshes := []Mesh {
     {{-4, 0, 0}, {0, 0, 0}, {2, 2, 2}, {{0.8, 0.5, 0.3}, 0.0, 0.8, 1.0}},
@@ -145,6 +156,9 @@ MAIN_FS :: GLSL_VERSION + `
     out vec4 o_frag_color;
 
     uniform vec3 u_view_pos;
+    uniform vec3 u_light_dir;
+    uniform vec3 u_light_color;
+    uniform float u_light_intensity;
     uniform float u_exposure;
     uniform vec3 u_mat_albedo;
     uniform float u_mat_metallic;
@@ -154,6 +168,31 @@ MAIN_FS :: GLSL_VERSION + `
     uniform sampler2D u_arm_tex;
     uniform sampler2D u_normal_tex;
     uniform samplerCube u_irradiance_map;
+
+    const float PI = 3.14159265359;
+
+    float distribution_ggx(vec3 n, vec3 h, float roughness) {
+        float a = roughness * roughness;
+        float a2 = a * a;
+        float n_dot_h = max(dot(n, h), 0.0);
+        float denom = (n_dot_h * n_dot_h * (a2 - 1.0) + 1.0);
+
+        return a2 / (PI * denom * denom);
+    }
+
+    float geometry_schlick_ggx(float n_dot_v, float roughness) {
+        float k = (roughness + 1.0);
+        k = (k * k) / 8.0;
+
+        return n_dot_v / (n_dot_v * (1.0 - k) + k);
+    }
+
+    float geometry_smith(vec3 n, vec3 v, vec3 l, float roughness) {
+        float nv = geometry_schlick_ggx(max(dot(n, v), 0.0), roughness);
+        float nl = geometry_schlick_ggx(max(dot(n, l), 0.0), roughness);
+
+        return nv * nl;
+    }
 
     vec3 fresnel_schlick(float cos_theta, vec3 f0) {
         return f0 + (1.0 - f0) * pow(clamp(1.0 - cos_theta, 0.0, 1.0), 5.0);
@@ -169,13 +208,24 @@ MAIN_FS :: GLSL_VERSION + `
         vec3 n = texture(u_normal_tex, v_tex_coord).rgb * 2.0 - 1.0;
         n = normalize(v_tbn * n);
         vec3 v = normalize(u_view_pos - v_world_pos);
+        vec3 l = normalize(u_light_dir);
+        vec3 h = normalize(v + l);
 
         vec3 f0 = mix(vec3(0.04), albedo, metallic);
+
+        // Direct light
+        float ndf = distribution_ggx(n, h, roughness);
+        float g = geometry_smith(n, v, l, roughness);
+        vec3 f = fresnel_schlick(clamp(dot(h, v), 0.0, 1.0), f0);
+        vec3 kd_direct = (vec3(1.0) - f) * (1.0 - metallic);
+        vec3 specular = (ndf * g * f) / (4.0 * max(dot(n, v), 0.0) * max(dot(n, l), 0.0) + 0.0001);
+        vec3 lo = (kd_direct * albedo / PI + specular) * u_light_color * max(dot(n, l), 0.0) * u_light_intensity;
+
+        // Diffuse IBL ambient
         vec3 ks = fresnel_schlick(max(dot(n, v), 0.0), f0);
         vec3 kd = (vec3(1.0) - ks) * (1.0 - metallic);
-
         vec3 irradiance = texture(u_irradiance_map, n).rgb;
-        vec3 color = kd * irradiance * albedo * ao;
+        vec3 color = kd * irradiance * albedo * ao + lo;
 
         // Exposure tone mapping
         color = vec3(1.0) - exp(-color * u_exposure);
@@ -543,7 +593,7 @@ main :: proc() {
     arm_tex := load_texture_from_bytes(#load("textures/arm.png")); defer gl.DeleteTextures(1, &arm_tex)
     normal_tex := load_texture_from_bytes(#load("textures/normal.png")); defer gl.DeleteTextures(1, &normal_tex)
 
-    // Source: https://polyhaven.com/a/clarens_midday
+    // Source: https://polyhaven.com/a/qwantani_dusk_2_puresky
     hdr_cubemap := load_hdr_cubemap(#load("cubemap/radiance.hdr"), main_vao, mesh_index_count)
     defer gl.DeleteTextures(1, &hdr_cubemap)
 
@@ -603,6 +653,9 @@ main :: proc() {
         gl.UniformMatrix4fv(main_uf["u_projection"].location, 1, false, &camera.projection[0][0])
         gl.UniformMatrix4fv(main_uf["u_view"].location, 1, false, &camera.view[0][0])
         gl.Uniform3fv(main_uf["u_view_pos"].location, 1, &camera.position[0])
+        gl.Uniform3fv(main_uf["u_light_dir"].location, 1, &light.dir[0])
+        gl.Uniform3fv(main_uf["u_light_color"].location, 1, &light.color[0])
+        gl.Uniform1f(main_uf["u_light_intensity"].location, light_intensity)
         gl.Uniform1f(main_uf["u_exposure"].location, exposure)
 
         gl.ActiveTexture(gl.TEXTURE0)
