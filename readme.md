@@ -34,4 +34,7 @@ Assets:
     https://ambientcg.com/
     https://freestylized.com/
     https://polyhaven.com/
+
+Tools:
+    https://github.com/BoundingBoxSoftware/Materialize
 ```
