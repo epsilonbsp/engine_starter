@@ -70,6 +70,7 @@ import example "01_io/01_window"
 // import example "05_3d_graphics/10_pbr_texture_mapping/04_parallax_steep"
 // import example "05_3d_graphics/10_pbr_texture_mapping/05_parallax_occlusion"
 // import example "05_3d_graphics/10_pbr_texture_mapping/06_displacement"
+// import example "05_3d_graphics/10_pbr_texture_mapping/07_displacement_tessellation"
 
 main :: proc() {
     example.main()
