@@ -84,7 +84,6 @@ gl
     ibl
         diffuse
         specular
-        final
     postprocessing
         filters
             grey_scale
