@@ -66,6 +66,7 @@ import example "01_io/01_window"
 
 // import example "05_3d_graphics/10_pbr_texture_mapping/01_material"
 // import example "05_3d_graphics/10_pbr_texture_mapping/02_normal"
+// import example "05_3d_graphics/10_pbr_texture_mapping/03_parallax"
 
 main :: proc() {
     example.main()
