@@ -73,6 +73,8 @@ import example "01_io/01_window"
 // import example "05_3d_graphics/10_pbr_texture_mapping/07_displacement_tessellation"
 // import example "05_3d_graphics/10_pbr_texture_mapping/08_emission"
 
+// import example "05_3d_graphics/11_ibl/01_diffuse"
+
 main :: proc() {
     example.main()
 }
