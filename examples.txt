@@ -86,7 +86,7 @@ gl
         specular
     postprocessing
         filters
-            grey_scale
+            grayscale
             inversion
             edge_detection
             vignette
