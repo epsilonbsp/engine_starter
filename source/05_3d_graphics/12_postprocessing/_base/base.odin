@@ -49,7 +49,7 @@ GBuffer :: struct {
     normal_tex: u32,
     albedo_tex: u32,
     material_tex: u32,
-    depth_rbo: u32,
+    depth_tex: u32,
 }
 
 SceneBuffer :: struct {
@@ -262,6 +262,9 @@ LIGHTING_FS :: GLSL_VERSION + `
     uniform sampler2D u_g_normal;
     uniform sampler2D u_g_albedo;
     uniform sampler2D u_g_material;
+    uniform sampler2D u_g_depth;
+    uniform float u_near;
+    uniform float u_far;
     uniform sampler2D u_shadow_map;
     uniform mat4 u_light_space;
     uniform vec3 u_view_pos;
@@ -348,6 +351,13 @@ LIGHTING_FS :: GLSL_VERSION + `
         if (u_debug_buffer == 2) { o_frag_color = vec4(n * 0.5 + 0.5, 1.0); return; }
         if (u_debug_buffer == 3) { o_frag_color = vec4(albedo, 1.0); return; }
         if (u_debug_buffer == 4) { o_frag_color = vec4(mat.rgb, 1.0); return; }
+
+        if (u_debug_buffer == 5) {
+            float d = texture(u_g_depth, v_tex_coord).r;
+            float linear_d = (2.0 * u_near) / (u_far + u_near - d * (u_far - u_near));
+
+            o_frag_color = vec4(vec3(linear_d), 1.0); return;
+        }
 
         float metallic = mat.r;
         float roughness = mat.g;
@@ -574,10 +584,12 @@ init_gbuffer :: proc(gbuffer: ^GBuffer, width: i32, height: i32) {
     attachments := [4]u32{gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1, gl.COLOR_ATTACHMENT2, gl.COLOR_ATTACHMENT3}
     gl.DrawBuffers(4, &attachments[0])
 
-    gl.GenRenderbuffers(1, &gbuffer.depth_rbo)
-    gl.BindRenderbuffer(gl.RENDERBUFFER, gbuffer.depth_rbo)
-    gl.RenderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT, width, height)
-    gl.FramebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, gbuffer.depth_rbo)
+    gl.GenTextures(1, &gbuffer.depth_tex)
+    gl.BindTexture(gl.TEXTURE_2D, gbuffer.depth_tex)
+    gl.TexImage2D(gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT24, width, height, 0, gl.DEPTH_COMPONENT, gl.FLOAT, nil)
+    gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+    gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+    gl.FramebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, gbuffer.depth_tex, 0)
 
     gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
 }
@@ -587,7 +599,7 @@ destroy_gbuffer :: proc(gbuffer: ^GBuffer) {
     gl.DeleteTextures(1, &gbuffer.normal_tex)
     gl.DeleteTextures(1, &gbuffer.albedo_tex)
     gl.DeleteTextures(1, &gbuffer.material_tex)
-    gl.DeleteRenderbuffers(1, &gbuffer.depth_rbo)
+    gl.DeleteTextures(1, &gbuffer.depth_tex)
     gl.DeleteFramebuffers(1, &gbuffer.fbo)
 }
 
@@ -596,7 +608,7 @@ resize_gbuffer :: proc(gbuffer: ^GBuffer, width: i32, height: i32) {
     init_gbuffer(gbuffer, width, height)
 }
 
-init_scene_buffer :: proc(scene: ^SceneBuffer, width: i32, height: i32, depth_rbo: u32) {
+init_scene_buffer :: proc(scene: ^SceneBuffer, width: i32, height: i32, depth_tex: u32) {
     gl.GenFramebuffers(1, &scene.fbo)
     gl.BindFramebuffer(gl.FRAMEBUFFER, scene.fbo)
 
@@ -608,7 +620,7 @@ init_scene_buffer :: proc(scene: ^SceneBuffer, width: i32, height: i32, depth_rb
     gl.FramebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, scene.color_tex, 0)
 
     // Share the gbuffer depth so the skybox can test against geometry depth
-    gl.FramebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depth_rbo)
+    gl.FramebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, depth_tex, 0)
 
     gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
 }
@@ -618,9 +630,9 @@ destroy_scene_buffer :: proc(scene: ^SceneBuffer) {
     gl.DeleteFramebuffers(1, &scene.fbo)
 }
 
-resize_scene_buffer :: proc(scene: ^SceneBuffer, width: i32, height: i32, depth_rbo: u32) {
+resize_scene_buffer :: proc(scene: ^SceneBuffer, width: i32, height: i32, depth_tex: u32) {
     destroy_scene_buffer(scene)
-    init_scene_buffer(scene, width, height, depth_rbo)
+    init_scene_buffer(scene, width, height, depth_tex)
 }
 
 init_base :: proc(base: ^Base, width: i32, height: i32) -> bool {
@@ -712,7 +724,7 @@ init_base :: proc(base: ^Base, width: i32, height: i32) -> bool {
     })
 
     init_gbuffer(&base.gbuffer, width, height)
-    init_scene_buffer(&base.scene_buffer, width, height, base.gbuffer.depth_rbo)
+    init_scene_buffer(&base.scene_buffer, width, height, base.gbuffer.depth_tex)
 
     base.light = Light{
         dir = glm.normalize(glm.vec3{1, 2, 3}),
@@ -765,7 +777,7 @@ destroy_base :: proc(base: ^Base) {
 
 resize_base :: proc(base: ^Base, width: i32, height: i32) {
     resize_gbuffer(&base.gbuffer, width, height)
-    resize_scene_buffer(&base.scene_buffer, width, height, base.gbuffer.depth_rbo)
+    resize_scene_buffer(&base.scene_buffer, width, height, base.gbuffer.depth_tex)
 }
 
 base_render_scene :: proc(base: ^Base, camera: ^Camera, viewport_x: i32, viewport_y: i32) {
@@ -859,12 +871,16 @@ base_render_scene :: proc(base: ^Base, camera: ^Camera, viewport_x: i32, viewpor
     gl.ActiveTexture(gl.TEXTURE2); gl.BindTexture(gl.TEXTURE_2D, base.gbuffer.albedo_tex)
     gl.ActiveTexture(gl.TEXTURE3); gl.BindTexture(gl.TEXTURE_2D, base.gbuffer.material_tex)
     gl.ActiveTexture(gl.TEXTURE4); gl.BindTexture(gl.TEXTURE_2D, base.depth_tex)
+    gl.ActiveTexture(gl.TEXTURE5); gl.BindTexture(gl.TEXTURE_2D, base.gbuffer.depth_tex)
 
     gl.Uniform1i(base.lighting_uf["u_g_position"].location, 0)
     gl.Uniform1i(base.lighting_uf["u_g_normal"].location, 1)
     gl.Uniform1i(base.lighting_uf["u_g_albedo"].location, 2)
     gl.Uniform1i(base.lighting_uf["u_g_material"].location, 3)
     gl.Uniform1i(base.lighting_uf["u_shadow_map"].location, 4)
+    gl.Uniform1i(base.lighting_uf["u_g_depth"].location, 5)
+    gl.Uniform1f(base.lighting_uf["u_near"].location, camera.near)
+    gl.Uniform1f(base.lighting_uf["u_far"].location, camera.far)
 
     gl.UniformMatrix4fv(base.lighting_uf["u_light_space"].location, 1, false, &light_space[0][0])
     gl.Uniform3fv(base.lighting_uf["u_view_pos"].location, 1, &camera.position[0])

@@ -123,7 +123,7 @@ main :: proc() {
                     _ = sdl.SetWindowRelativeMouseMode(window, !sdl.GetWindowRelativeMouseMode(window))
                 }
 
-                if event.key.scancode >= sdl.Scancode._1 && event.key.scancode <= sdl.Scancode._5 {
+                if event.key.scancode >= sdl.Scancode._1 && event.key.scancode <= sdl.Scancode._6 {
                     base.debug_buffer = i32(event.key.scancode - sdl.Scancode._1)
                 }
 
