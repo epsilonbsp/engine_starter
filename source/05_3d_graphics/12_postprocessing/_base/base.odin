@@ -25,6 +25,8 @@ Material :: struct {
     metallic: f32,
     roughness: f32,
     ao: f32,
+    texture_index: i32,
+    tiling_scale: f32,
 }
 
 Mesh :: struct {
@@ -76,9 +78,9 @@ Base :: struct {
     skybox_vao: u32,
 
     // Textures
-    albedo_tex: u32,
-    arm_tex: u32,
-    normal_tex: u32,
+    albedo_arr: u32,
+    arm_arr: u32,
+    normal_arr: u32,
     depth_tex: u32,
 
     // Framebuffers
@@ -105,14 +107,14 @@ SHADOW_MAP_SIZE :: 2048
 SHADOW_OUTSIDE_COLOR := glm.vec4{1, 1, 1, 1}
 
 meshes := []Mesh{
-    {{ 0.0, -1.0,  0.0}, {0, 0, 0}, {32, 2,  32}, {{1, 1, 1}, 1.0, 0.2, 1.0}},
-    {{ 0.0,  0.5,  0.0}, {0, 0, 0}, {16, 1,  16}, {{1, 1, 1}, 1.0, 0.2, 1.0}},
-    {{-6.0,  7.0,  6.0}, {0, 0, 0}, {1,  12, 1 }, {{1, 1, 1}, 1.0, 0.2, 1.0}},
-    {{ 6.0,  7.0,  6.0}, {0, 0, 0}, {1,  12, 1 }, {{1, 1, 1}, 1.0, 0.2, 1.0}},
-    {{ 6.0,  7.0, -6.0}, {0, 0, 0}, {1,  12, 1 }, {{1, 1, 1}, 1.0, 0.2, 1.0}},
-    {{-6.0,  7.0, -6.0}, {0, 0, 0}, {1,  12, 1 }, {{1, 1, 1}, 1.0, 0.2, 1.0}},
-    {{ 0.0,  3.0,  0.0}, {0, 0, 0}, {8,  4,  1 }, {{1, 1, 1}, 1.0, 0.2, 1.0}},
-    {{ 0.0, 13.5,  0.0}, {0, 0, 0}, {16, 1,  16}, {{1, 1, 1}, 1.0, 0.2, 1.0}},
+    {{ 0.0, -1.0,  0.0}, {0, 0, 0}, {32, 2,  32}, {{1, 1, 1}, 1.0, 1.0, 1.0, 0, 0.5}},
+    {{ 0.0,  0.5,  0.0}, {0, 0, 0}, {16, 1,  16}, {{1, 1, 1}, 1.0, 0.2, 1.0, 1, 0.5}},
+    {{ 0.0,  3.0,  0.0}, {0, 0, 0}, {8,  4,  1 }, {{1, 1, 1}, 1.0, 0.2, 1.0, 2, 0.5}},
+    {{-6.0,  7.0,  6.0}, {0, 0, 0}, {1,  12, 1 }, {{1, 1, 1}, 1.0, 0.2, 1.0, 3, 0.5}},
+    {{ 6.0,  7.0,  6.0}, {0, 0, 0}, {1,  12, 1 }, {{1, 1, 1}, 1.0, 0.2, 1.0, 3, 0.5}},
+    {{ 6.0,  7.0, -6.0}, {0, 0, 0}, {1,  12, 1 }, {{1, 1, 1}, 1.0, 0.2, 1.0, 3, 0.5}},
+    {{-6.0,  7.0, -6.0}, {0, 0, 0}, {1,  12, 1 }, {{1, 1, 1}, 1.0, 0.2, 1.0, 3, 0.5}},
+    {{ 0.0, 13.5,  0.0}, {0, 0, 0}, {16, 1,  16}, {{1, 1, 1}, 1.0, 0.2, 1.0, 1, 0.5}},
 }
 
 mesh_vertices := []Vertex{
@@ -203,20 +205,22 @@ GBUFFER_FS :: GLSL_VERSION + `
     uniform float u_mat_metallic;
     uniform float u_mat_roughness;
     uniform float u_mat_ao;
-    uniform sampler2D u_albedo_tex;
-    uniform sampler2D u_arm_tex;
-    uniform sampler2D u_normal_tex;
+    uniform sampler2DArray u_albedo_tex;
+    uniform sampler2DArray u_arm_tex;
+    uniform sampler2DArray u_normal_tex;
+    uniform int u_texture_index;
+    uniform float u_tiling_scale;
 
     void main() {
-        vec2 uv = vec2(dot(v_world_pos, v_tbn[0]), dot(v_world_pos, v_tbn[1]));
+        vec3 uvw = vec3(dot(v_world_pos, v_tbn[0]) * u_tiling_scale, dot(v_world_pos, v_tbn[1]) * u_tiling_scale, float(u_texture_index));
 
-        vec3 albedo = texture(u_albedo_tex, uv).rgb * u_mat_albedo;
-        vec3 arm = texture(u_arm_tex, uv).rgb;
+        vec3 albedo = texture(u_albedo_tex, uvw).rgb * u_mat_albedo;
+        vec3 arm = texture(u_arm_tex, uvw).rgb;
         float ao = arm.r * u_mat_ao;
         float roughness = arm.g * u_mat_roughness;
         float metallic = arm.b * u_mat_metallic;
 
-        vec3 n = texture(u_normal_tex, uv).rgb * 2.0 - 1.0;
+        vec3 n = texture(u_normal_tex, uvw).rgb * 2.0 - 1.0;
         n = normalize(v_tbn * n);
 
         o_position = v_world_pos;
@@ -500,6 +504,41 @@ load_texture_from_bytes :: proc(bytes: []u8, srgb := false) -> u32 {
     return tex
 }
 
+load_texture_array :: proc(layers: [][]u8, srgb := false) -> u32 {
+    tex: u32; gl.GenTextures(1, &tex)
+    gl.BindTexture(gl.TEXTURE_2D_ARRAY, tex)
+
+    layer_count := i32(len(layers))
+
+    for bytes, i in layers {
+        image, _ := png.load_from_bytes(bytes, {.alpha_add_if_missing}); defer png.destroy(image)
+        w, h := i32(image.width), i32(image.height)
+
+        if i == 0 {
+            if image.depth == 16 {
+                gl.TexImage3D(gl.TEXTURE_2D_ARRAY, 0, gl.RGBA16, w, h, layer_count, 0, gl.RGBA, gl.UNSIGNED_SHORT, nil)
+            } else {
+                internal_format := srgb ? gl.SRGB8_ALPHA8 : gl.RGBA8
+                gl.TexImage3D(gl.TEXTURE_2D_ARRAY, 0, i32(internal_format), w, h, layer_count, 0, gl.RGBA, gl.UNSIGNED_BYTE, nil)
+            }
+        }
+
+        if image.depth == 16 {
+            gl.TexSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, i32(i), w, h, 1, gl.RGBA, gl.UNSIGNED_SHORT, &image.pixels.buf[0])
+        } else {
+            gl.TexSubImage3D(gl.TEXTURE_2D_ARRAY, 0, 0, 0, i32(i), w, h, 1, gl.RGBA, gl.UNSIGNED_BYTE, &image.pixels.buf[0])
+        }
+    }
+
+    gl.GenerateMipmap(gl.TEXTURE_2D_ARRAY)
+    gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR)
+    gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
+    gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, gl.REPEAT)
+    gl.TexParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_T, gl.REPEAT)
+
+    return tex
+}
+
 init_gbuffer :: proc(gbuffer: ^GBuffer, width: i32, height: i32) {
     gl.GenFramebuffers(1, &gbuffer.fbo)
     gl.BindFramebuffer(gl.FRAMEBUFFER, gbuffer.fbo)
@@ -646,10 +685,31 @@ init_base :: proc(base: ^Base, width: i32, height: i32) -> bool {
     gl.ReadBuffer(gl.NONE)
     gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
 
-    // Source: https://polyhaven.com/a/checkered_pavement_tiles
-    base.albedo_tex = load_texture_from_bytes(#load("textures/albedo.png"), true)
-    base.arm_tex = load_texture_from_bytes(#load("textures/arm.png"))
-    base.normal_tex = load_texture_from_bytes(#load("textures/normal.png"))
+    // A source: https://polyhaven.com/a/rocky_terrain_02
+    // B source: https://polyhaven.com/a/floor_tiles_08
+    // C source: https://polyhaven.com/a/rebar_reinforced_concrete
+    // D source: https://polyhaven.com/a/long_white_tiles
+
+    base.albedo_arr = load_texture_array([][]u8{
+        #load("textures/a/albedo.png"),
+        #load("textures/b/albedo.png"),
+        #load("textures/c/albedo.png"),
+        #load("textures/d/albedo.png"),
+    }, true)
+
+    base.arm_arr = load_texture_array([][]u8{
+        #load("textures/a/arm.png"),
+        #load("textures/b/arm.png"),
+        #load("textures/c/arm.png"),
+        #load("textures/d/arm.png"),
+    })
+
+    base.normal_arr = load_texture_array([][]u8{
+        #load("textures/a/normal.png"),
+        #load("textures/b/normal.png"),
+        #load("textures/c/normal.png"),
+        #load("textures/d/normal.png"),
+    })
 
     init_gbuffer(&base.gbuffer, width, height)
     init_scene_buffer(&base.scene_buffer, width, height, base.gbuffer.depth_rbo)
@@ -692,9 +752,9 @@ destroy_base :: proc(base: ^Base) {
     gl.DeleteVertexArrays(1, &base.quad_vao)
     gl.DeleteVertexArrays(1, &base.skybox_vao)
 
-    gl.DeleteTextures(1, &base.albedo_tex)
-    gl.DeleteTextures(1, &base.arm_tex)
-    gl.DeleteTextures(1, &base.normal_tex)
+    gl.DeleteTextures(1, &base.albedo_arr)
+    gl.DeleteTextures(1, &base.arm_arr)
+    gl.DeleteTextures(1, &base.normal_arr)
     gl.DeleteTextures(1, &base.depth_tex)
 
     gl.DeleteFramebuffers(1, &base.depth_fbo)
@@ -758,15 +818,15 @@ base_render_scene :: proc(base: ^Base, camera: ^Camera, viewport_x: i32, viewpor
     gl.UniformMatrix4fv(base.gbuffer_uf["u_view"].location, 1, false, &camera.view[0][0])
 
     gl.ActiveTexture(gl.TEXTURE0)
-    gl.BindTexture(gl.TEXTURE_2D, base.albedo_tex)
+    gl.BindTexture(gl.TEXTURE_2D_ARRAY, base.albedo_arr)
     gl.Uniform1i(base.gbuffer_uf["u_albedo_tex"].location, 0)
 
     gl.ActiveTexture(gl.TEXTURE1)
-    gl.BindTexture(gl.TEXTURE_2D, base.arm_tex)
+    gl.BindTexture(gl.TEXTURE_2D_ARRAY, base.arm_arr)
     gl.Uniform1i(base.gbuffer_uf["u_arm_tex"].location, 1)
 
     gl.ActiveTexture(gl.TEXTURE2)
-    gl.BindTexture(gl.TEXTURE_2D, base.normal_tex)
+    gl.BindTexture(gl.TEXTURE_2D_ARRAY, base.normal_arr)
     gl.Uniform1i(base.gbuffer_uf["u_normal_tex"].location, 2)
 
     gl.BindVertexArray(base.main_vao)
@@ -781,6 +841,8 @@ base_render_scene :: proc(base: ^Base, camera: ^Camera, viewport_x: i32, viewpor
         gl.Uniform1f(base.gbuffer_uf["u_mat_metallic"].location, mesh.material.metallic)
         gl.Uniform1f(base.gbuffer_uf["u_mat_roughness"].location, mesh.material.roughness)
         gl.Uniform1f(base.gbuffer_uf["u_mat_ao"].location, mesh.material.ao)
+        gl.Uniform1i(base.gbuffer_uf["u_texture_index"].location, mesh.material.texture_index)
+        gl.Uniform1f(base.gbuffer_uf["u_tiling_scale"].location, mesh.material.tiling_scale)
 
         gl.DrawElements(gl.TRIANGLES, i32(mesh_index_count), gl.UNSIGNED_INT, nil)
     }
