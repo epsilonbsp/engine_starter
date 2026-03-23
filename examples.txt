@@ -89,29 +89,21 @@ gl
             grey_scale
             inversion
             edge_detection
-        lens_artifacts
             vignette
             chromatic_aberration
-        color_space
             gamma_correction
             exposure
             tone_mapping
-        color_correction
             color_grading
             color_lookup_table
-        blur
             gaussian
             sharpen
             depth_of_field
             motion_blur
-        shading
             screen_space_ambient_occlusion
-        light_accumulation
             bloom
             glare
-        quality
             anti_aliasing
-        volumetric
             fog
             god_rays
     optimization
