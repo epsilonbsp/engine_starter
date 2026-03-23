@@ -80,6 +80,7 @@ import example "01_io/01_window"
 // import example "05_3d_graphics/12_postprocessing/02_inversion"
 // import example "05_3d_graphics/12_postprocessing/03_edge_detection"
 // import example "05_3d_graphics/12_postprocessing/04_vignette"
+// import example "05_3d_graphics/12_postprocessing/05_chromatic_aberration"
 
 main :: proc() {
     example.main()
