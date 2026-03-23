@@ -20,7 +20,9 @@ GRAYSCALE_FS :: b.GLSL_VERSION + `
     out vec4 o_frag_color;
 
     uniform sampler2D u_scene_color;
+    uniform float u_exposure;
     uniform int u_debug_buffer;
+    uniform bool u_enable_pp;
 
     void main() {
         vec3 color = texture(u_scene_color, v_tex_coord).rgb;
@@ -31,9 +33,19 @@ GRAYSCALE_FS :: b.GLSL_VERSION + `
             return;
         }
 
-        float luminance = (color.r + color.g + color.b) / 3;
+        // Tone mapping
+        color = vec3(1.0) - exp(-color * u_exposure);
 
-        o_frag_color = vec4(luminance, luminance, luminance, 1.0);
+        // Grayscale
+        if (u_enable_pp) {
+            float luminance = dot(color, vec3(0.2126, 0.7152, 0.0722));
+            color = vec3(luminance);
+        }
+
+        // Gamma correction
+        color = pow(color, vec3(1.0 / 2.2));
+
+        o_frag_color = vec4(color, 1.0);
     }
 `
 
@@ -84,6 +96,8 @@ main :: proc() {
         return
     }
 
+    enable_pp := true
+
     camera: b.Camera
     b.init_camera(&camera, position = {6, 6, 6})
     b.point_camera_at(&camera, {})
@@ -112,6 +126,10 @@ main :: proc() {
                 if event.key.scancode >= sdl.Scancode._1 && event.key.scancode <= sdl.Scancode._5 {
                     base.debug_buffer = i32(event.key.scancode - sdl.Scancode._1)
                 }
+
+                if event.key.scancode == sdl.Scancode.TAB {
+                    enable_pp = !enable_pp
+                }
             case .MOUSE_MOTION:
                 if sdl.GetWindowRelativeMouseMode(window) {
                     b.rotate_camera(&camera, event.motion.xrel * camera_movement.yaw_speed, event.motion.yrel * camera_movement.pitch_speed, 0)
@@ -132,7 +150,6 @@ main :: proc() {
 
         // Base
         b.base_render_scene(&base, &camera, viewport_x, viewport_y)
-        b.base_tonemap(&base, base.scene_buffer.color_tex)
 
         // Grayscale
         gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
@@ -142,8 +159,10 @@ main :: proc() {
         gl.UseProgram(grayscale_pg)
         gl.ActiveTexture(gl.TEXTURE0)
         gl.BindTexture(gl.TEXTURE_2D, base.scene_buffer.color_tex)
-        gl.Uniform1i(base.tonemap_uf["u_scene_color"].location, 0)
-        gl.Uniform1i(base.tonemap_uf["u_debug_buffer"].location, base.debug_buffer)
+        gl.Uniform1i(grayscale_uf["u_scene_color"].location, 0)
+        gl.Uniform1f(grayscale_uf["u_exposure"].location, base.exposure)
+        gl.Uniform1i(grayscale_uf["u_debug_buffer"].location, base.debug_buffer)
+        gl.Uniform1i(grayscale_uf["u_enable_pp"].location, i32(enable_pp))
 
         gl.BindVertexArray(base.quad_vao)
         gl.DrawArrays(gl.TRIANGLE_STRIP, 0, 4)
