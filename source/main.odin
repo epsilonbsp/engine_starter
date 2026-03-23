@@ -76,6 +76,8 @@ import example "01_io/01_window"
 // import example "05_3d_graphics/11_ibl/01_diffuse"
 // import example "05_3d_graphics/11_ibl/02_specular"
 
+// import example "05_3d_graphics/12_postprocessing/01_grayscale"
+
 main :: proc() {
     example.main()
 }
