@@ -34,6 +34,7 @@ Mesh :: struct {
     rotation: glm.vec3,
     scale: glm.vec3,
     material: Material,
+    primitive_index: int, // 0 = default cube, 1+ = index into base.primitives (offset by 1)
 }
 
 Vertex :: struct {
@@ -77,6 +78,10 @@ Base :: struct {
     quad_vao: u32,
     skybox_vao: u32,
 
+    // Scene objects
+    meshes: [dynamic]Mesh,
+    primitives: [dynamic]GL_Primitive,
+
     // Textures
     albedo_arr: u32,
     arm_arr: u32,
@@ -107,14 +112,15 @@ SHADOW_MAP_SIZE :: 2048
 SHADOW_OUTSIDE_COLOR := glm.vec4{1, 1, 1, 1}
 
 meshes := []Mesh{
-    {{ 0.0, -1.0,  0.0}, {0, 0, 0}, {32, 2,  32}, {{1, 1, 1}, 1.0, 1.0, 1.0, 0, 0.5}},
-    {{ 0.0,  0.5,  0.0}, {0, 0, 0}, {16, 1,  16}, {{1, 1, 1}, 1.0, 0.2, 1.0, 1, 0.5}},
-    {{ 0.0,  3.0,  0.0}, {0, 0, 0}, {8,  4,  1 }, {{1, 1, 1}, 1.0, 0.2, 1.0, 2, 0.5}},
-    {{-6.0,  7.0,  6.0}, {0, 0, 0}, {1,  12, 1 }, {{1, 1, 1}, 1.0, 0.2, 1.0, 3, 0.5}},
-    {{ 6.0,  7.0,  6.0}, {0, 0, 0}, {1,  12, 1 }, {{1, 1, 1}, 1.0, 0.2, 1.0, 3, 0.5}},
-    {{ 6.0,  7.0, -6.0}, {0, 0, 0}, {1,  12, 1 }, {{1, 1, 1}, 1.0, 0.2, 1.0, 3, 0.5}},
-    {{-6.0,  7.0, -6.0}, {0, 0, 0}, {1,  12, 1 }, {{1, 1, 1}, 1.0, 0.2, 1.0, 3, 0.5}},
-    {{ 0.0, 13.5,  0.0}, {0, 0, 0}, {16, 1,  16}, {{1, 1, 1}, 1.0, 0.2, 1.0, 1, 0.5}},
+    {{ 0.0, -1.0,  0.0}, {0, 0, 0}, {32, 2,  32}, {{1, 1, 1}, 1.0, 1.0, 1.0, 1, 0.5}, 0},
+    {{ 0.0,  0.5,  0.0}, {0, 0, 0}, {16, 1,  16}, {{1, 1, 1}, 1.0, 0.2, 1.0, 2, 0.5}, 0},
+    {{ 0.0,  3.0,  0.0}, {0, 0, 0}, {8,  4,  1 }, {{1, 1, 1}, 1.0, 0.2, 1.0, 3, 0.5}, 0},
+    {{-6.0,  7.0,  6.0}, {0, 0, 0}, {1,  12, 1 }, {{1, 1, 1}, 1.0, 0.2, 1.0, 4, 0.5}, 0},
+    {{ 6.0,  7.0,  6.0}, {0, 0, 0}, {1,  12, 1 }, {{1, 1, 1}, 1.0, 0.2, 1.0, 4, 0.5}, 0},
+    {{ 6.0,  7.0, -6.0}, {0, 0, 0}, {1,  12, 1 }, {{1, 1, 1}, 1.0, 0.2, 1.0, 4, 0.5}, 0},
+    {{-6.0,  7.0, -6.0}, {0, 0, 0}, {1,  12, 1 }, {{1, 1, 1}, 1.0, 0.2, 1.0, 4, 0.5}, 0},
+    {{ 0.0,  13.5, 0.0}, {0, 0, 0}, {16, 1,  16}, {{1, 1, 1}, 1.0, 0.2, 1.0, 2, 0.5}, 0},
+    {{ 0.0,  1.1,  6.0}, {0, 0, 0}, {4,  4,  4 }, {{1, 1, 1}, 0.0, 0.5, 1.0, 0, 0.5}, 1},
 }
 
 mesh_vertices := []Vertex{
@@ -212,16 +218,30 @@ GBUFFER_FS :: GLSL_VERSION + `
     uniform float u_tiling_scale;
 
     void main() {
-        vec3 uvw = vec3(dot(v_world_pos, v_tbn[0]) * u_tiling_scale, dot(v_world_pos, v_tbn[1]) * u_tiling_scale, float(u_texture_index));
+        vec3 albedo;
+        float ao;
+        float roughness;
+        float metallic;
+        vec3 n;
 
-        vec3 albedo = texture(u_albedo_tex, uvw).rgb * u_mat_albedo;
-        vec3 arm = texture(u_arm_tex, uvw).rgb;
-        float ao = arm.r * u_mat_ao;
-        float roughness = arm.g * u_mat_roughness;
-        float metallic = arm.b * u_mat_metallic;
+        if (u_texture_index == 0) {
+            albedo = u_mat_albedo;
+            ao = u_mat_ao;
+            roughness = u_mat_roughness;
+            metallic = u_mat_metallic;
+            n = normalize(v_tbn[2]);
+        } else {
+            vec3 uvw = vec3(dot(v_world_pos, v_tbn[0]) * u_tiling_scale, dot(v_world_pos, v_tbn[1]) * u_tiling_scale, float(u_texture_index - 1));
 
-        vec3 n = texture(u_normal_tex, uvw).rgb * 2.0 - 1.0;
-        n = normalize(v_tbn * n);
+            albedo = texture(u_albedo_tex, uvw).rgb * u_mat_albedo;
+            vec3 arm = texture(u_arm_tex, uvw).rgb;
+            ao = arm.r * u_mat_ao;
+            roughness = arm.g * u_mat_roughness;
+            metallic = arm.b * u_mat_metallic;
+
+            n = texture(u_normal_tex, uvw).rgb * 2.0 - 1.0;
+            n = normalize(v_tbn * n);
+        }
 
         o_position = v_world_pos;
         o_normal = n;
@@ -725,6 +745,16 @@ init_base :: proc(base: ^Base, width: i32, height: i32) -> bool {
         #load("textures/d/normal.png"),
     })
 
+    base.meshes = make([dynamic]Mesh)
+    append(&base.meshes, ..meshes)
+
+    base.primitives = make([dynamic]GL_Primitive)
+    bust_prim, bust_ok := load_gltf_primitive(load_gltf_from_bytes(#load("models/marble_bust.glb")))
+
+    if bust_ok {
+        append(&base.primitives, bust_prim)
+    }
+
     init_gbuffer(&base.gbuffer, width, height)
     init_scene_buffer(&base.scene_buffer, width, height, base.gbuffer.depth_tex)
 
@@ -765,6 +795,13 @@ destroy_base :: proc(base: ^Base) {
     gl.DeleteBuffers(1, &base.main_ibo)
     gl.DeleteVertexArrays(1, &base.quad_vao)
     gl.DeleteVertexArrays(1, &base.skybox_vao)
+
+    for &prim in base.primitives {
+        destroy_gltf_primitive(&prim)
+    }
+
+    delete(base.primitives)
+    delete(base.meshes)
 
     gl.DeleteTextures(1, &base.albedo_arr)
     gl.DeleteTextures(1, &base.arm_arr)
@@ -809,13 +846,19 @@ base_render_scene :: proc(base: ^Base, camera: ^Camera, viewport_x: i32, viewpor
 
     gl.UseProgram(base.depth_pg)
     gl.UniformMatrix4fv(base.depth_uf["u_light_space"].location, 1, false, &light_space[0][0])
-    gl.BindVertexArray(base.main_vao)
 
-    for &mesh in meshes {
+    for &mesh in base.meshes {
         model := make_transform(mesh.translation, mesh.rotation, mesh.scale)
-
         gl.UniformMatrix4fv(base.depth_uf["u_model"].location, 1, false, &model[0][0])
-        gl.DrawElements(gl.TRIANGLES, i32(mesh_index_count), gl.UNSIGNED_INT, nil)
+
+        if mesh.primitive_index == 0 {
+            gl.BindVertexArray(base.main_vao)
+            gl.DrawElements(gl.TRIANGLES, i32(mesh_index_count), gl.UNSIGNED_INT, nil)
+        } else {
+            prim := &base.primitives[mesh.primitive_index - 1]
+            gl.BindVertexArray(prim.vao)
+            gl.DrawElements(gl.TRIANGLES, prim.index_count, gl.UNSIGNED_INT, nil)
+        }
     }
 
     gl.BindFramebuffer(gl.FRAMEBUFFER, 0)
@@ -845,7 +888,7 @@ base_render_scene :: proc(base: ^Base, camera: ^Camera, viewport_x: i32, viewpor
 
     gl.BindVertexArray(base.main_vao)
 
-    for &mesh in meshes {
+    for &mesh in base.meshes {
         model := make_transform(mesh.translation, mesh.rotation, mesh.scale)
         normal_matrix := glm.transpose(glm.inverse(glm.mat3(model)))
 
@@ -858,7 +901,14 @@ base_render_scene :: proc(base: ^Base, camera: ^Camera, viewport_x: i32, viewpor
         gl.Uniform1i(base.gbuffer_uf["u_texture_index"].location, mesh.material.texture_index)
         gl.Uniform1f(base.gbuffer_uf["u_tiling_scale"].location, mesh.material.tiling_scale)
 
-        gl.DrawElements(gl.TRIANGLES, i32(mesh_index_count), gl.UNSIGNED_INT, nil)
+        if mesh.primitive_index == 0 {
+            gl.BindVertexArray(base.main_vao)
+            gl.DrawElements(gl.TRIANGLES, i32(mesh_index_count), gl.UNSIGNED_INT, nil)
+        } else {
+            prim := &base.primitives[mesh.primitive_index - 1]
+            gl.BindVertexArray(prim.vao)
+            gl.DrawElements(gl.TRIANGLES, prim.index_count, gl.UNSIGNED_INT, nil)
+        }
     }
 
     // Lighting pass
