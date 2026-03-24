@@ -82,28 +82,33 @@ BLUR_V_FS :: b.GLSL_VERSION + `
     }
 `
 
-PingPong :: struct {
+RenderTarget :: struct {
     fbo: u32,
     tex: u32,
 }
 
-init_ping_pong :: proc(pp: ^PingPong, width: i32, height: i32) {
-    gl.GenTextures(1, &pp.tex)
-    gl.BindTexture(gl.TEXTURE_2D, pp.tex)
+init_render_target :: proc(rt: ^RenderTarget, width: i32, height: i32) {
+    gl.GenTextures(1, &rt.tex)
+    gl.BindTexture(gl.TEXTURE_2D, rt.tex)
     gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGB16F, width, height, 0, gl.RGB, gl.FLOAT, nil)
     gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR)
     gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR)
     gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE)
     gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
 
-    gl.GenFramebuffers(1, &pp.fbo)
-    gl.BindFramebuffer(gl.FRAMEBUFFER, pp.fbo)
-    gl.FramebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, pp.tex, 0)
+    gl.GenFramebuffers(1, &rt.fbo)
+    gl.BindFramebuffer(gl.FRAMEBUFFER, rt.fbo)
+    gl.FramebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, rt.tex, 0)
 }
 
-destroy_ping_pong :: proc(pp: ^PingPong) {
-    gl.DeleteTextures(1, &pp.tex)
-    gl.DeleteFramebuffers(1, &pp.fbo)
+destroy_render_target :: proc(rt: ^RenderTarget) {
+    gl.DeleteTextures(1, &rt.tex)
+    gl.DeleteFramebuffers(1, &rt.fbo)
+}
+
+resize_render_target :: proc(rt: ^RenderTarget, width: i32, height: i32) {
+    destroy_render_target(rt)
+    init_render_target(rt, width, height)
 }
 
 main :: proc() {
@@ -163,9 +168,8 @@ main :: proc() {
         return
     }
 
-    pp: PingPong
-    init_ping_pong(&pp, viewport_x, viewport_y)
-    defer destroy_ping_pong(&pp)
+    pp: RenderTarget
+    init_render_target(&pp, viewport_x, viewport_y); defer destroy_render_target(&pp)
 
     enable_pp := true
     blur_radius := f32(1.0)
@@ -190,8 +194,7 @@ main :: proc() {
             case .WINDOW_RESIZED:
                 sdl.GetWindowSize(window, &viewport_x, &viewport_y)
                 b.resize_base(&base, viewport_x, viewport_y)
-                destroy_ping_pong(&pp)
-                init_ping_pong(&pp, viewport_x, viewport_y)
+                resize_render_target(&pp, viewport_x, viewport_y)
             case .KEY_DOWN:
                 if event.key.scancode == sdl.Scancode.ESCAPE {
                     _ = sdl.SetWindowRelativeMouseMode(window, !sdl.GetWindowRelativeMouseMode(window))
