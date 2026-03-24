@@ -101,7 +101,7 @@ gl
             sharpen
             depth_of_field
             motion_blur
-            screen_space_ambient_occlusion
+            ssao
             bloom
             glare
             anti_aliasing
