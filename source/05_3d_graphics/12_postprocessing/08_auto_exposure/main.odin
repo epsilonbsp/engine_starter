@@ -143,7 +143,7 @@ main :: proc() {
     init_lum_buffer(&lum_tex, &lum_fbo, viewport_x, viewport_y)
     defer destroy_lum_buffer(&lum_tex, &lum_fbo)
 
-    base.sky_irradiance_strength = 0.1
+    base.sky_irradiance_strength = 0.03
 
     enable_pp := true
 
