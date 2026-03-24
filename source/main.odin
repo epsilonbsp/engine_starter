@@ -92,6 +92,7 @@ import example "01_io/01_window"
 // import example "05_3d_graphics/12_postprocessing/14_depth_of_field"
 // import example "05_3d_graphics/12_postprocessing/15_motion_blur"
 // import example "05_3d_graphics/12_postprocessing/17_bloom"
+// import example "05_3d_graphics/12_postprocessing/18_glare"
 
 main :: proc() {
     example.main()
