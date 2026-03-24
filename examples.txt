@@ -93,9 +93,10 @@ gl
             chromatic_aberration
             gamma_correction
             exposure
+            auto_exposure
             tone_mapping
             color_grading
-            color_lookup_table
+            color_lut
             gaussian
             sharpen
             depth_of_field
@@ -113,9 +114,6 @@ gl
         instancing
         light_volumes
         batching
-    complete_pipelines
-        trad
-        pbr
     other
 3d_physics
 other
