@@ -123,17 +123,19 @@ main :: proc() {
                     base.debug_buffer = i32(event.key.scancode - sdl.Scancode._1)
                 }
 
-                if event.key.scancode == sdl.Scancode.TAB {
+                if event.key.scancode == sdl.Scancode.LSHIFT {
                     enable_pp = !enable_pp
                 }
 
-                if event.key.scancode == sdl.Scancode.LEFT {
+                if event.key.scancode == sdl.Scancode.DOWN {
                     base.exposure -= 0.1
+
                     fmt.printf("Exposure: %.1f\n", base.exposure)
                 }
 
-                if event.key.scancode == sdl.Scancode.RIGHT {
+                if event.key.scancode == sdl.Scancode.UP {
                     base.exposure += 0.1
+
                     fmt.printf("Exposure: %.1f\n", base.exposure)
                 }
             case .MOUSE_MOTION:

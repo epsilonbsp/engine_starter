@@ -133,8 +133,20 @@ main :: proc() {
                     base.debug_buffer = i32(event.key.scancode - sdl.Scancode._1)
                 }
 
-                if event.key.scancode == sdl.Scancode.TAB {
+                if event.key.scancode == sdl.Scancode.LSHIFT {
                     enable_pp = !enable_pp
+                }
+
+                if event.key.scancode == sdl.Scancode.UP {
+                    aberration_strength += 0.01
+
+                    fmt.printf("Aberration strength: %.2f\n", aberration_strength)
+                }
+
+                if event.key.scancode == sdl.Scancode.DOWN {
+                    aberration_strength = max(0.0, aberration_strength - 0.01)
+
+                    fmt.printf("Aberration strength: %.2f\n", aberration_strength)
                 }
             case .MOUSE_MOTION:
                 if sdl.GetWindowRelativeMouseMode(window) {

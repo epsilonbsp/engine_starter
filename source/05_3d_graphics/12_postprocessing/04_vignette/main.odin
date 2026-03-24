@@ -131,8 +131,20 @@ main :: proc() {
                     base.debug_buffer = i32(event.key.scancode - sdl.Scancode._1)
                 }
 
-                if event.key.scancode == sdl.Scancode.TAB {
+                if event.key.scancode == sdl.Scancode.LSHIFT {
                     enable_pp = !enable_pp
+                }
+
+                if event.key.scancode == sdl.Scancode.UP {
+                    vignette_strength += 0.1
+
+                    fmt.printf("Vignette strength: %.1f\n", vignette_strength)
+                }
+
+                if event.key.scancode == sdl.Scancode.DOWN {
+                    vignette_strength = max(0.0, vignette_strength - 0.1)
+
+                    fmt.printf("Vignette strength: %.1f\n", vignette_strength)
                 }
             case .MOUSE_MOTION:
                 if sdl.GetWindowRelativeMouseMode(window) {
