@@ -162,7 +162,7 @@ main :: proc() {
                     base.debug_buffer = i32(event.key.scancode - sdl.Scancode._1)
                 }
 
-                if event.key.scancode == sdl.Scancode.TAB {
+                if event.key.scancode == sdl.Scancode.LSHIFT {
                     enable_pp = !enable_pp
                 }
 

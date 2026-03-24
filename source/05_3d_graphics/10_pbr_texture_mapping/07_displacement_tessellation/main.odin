@@ -454,7 +454,7 @@ main :: proc() {
                     _ = sdl.SetWindowRelativeMouseMode(window, !sdl.GetWindowRelativeMouseMode(window))
                 }
 
-                if event.key.scancode == sdl.Scancode.TAB {
+                if event.key.scancode == sdl.Scancode.LSHIFT {
                     wireframe = !wireframe
                 }
 
