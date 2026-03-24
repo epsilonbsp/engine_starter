@@ -95,6 +95,8 @@ import example "01_io/01_window"
 // import example "05_3d_graphics/12_postprocessing/17_bloom"
 // import example "05_3d_graphics/12_postprocessing/18_glare"
 
+// import example "05_3d_graphics/14_other/01_fake_spheres"
+
 main :: proc() {
     example.main()
 }
