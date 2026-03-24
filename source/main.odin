@@ -86,6 +86,7 @@ import example "01_io/01_window"
 // import example "05_3d_graphics/12_postprocessing/08_auto_exposure"
 // import example "05_3d_graphics/12_postprocessing/09_tone_mapping"
 // import example "05_3d_graphics/12_postprocessing/10_color_grading"
+// import example "05_3d_graphics/12_postprocessing/11_color_lut"
 
 main :: proc() {
     example.main()
