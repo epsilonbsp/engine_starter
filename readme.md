@@ -30,6 +30,11 @@ import example "01_io/01_window"
 ## References
 
 ```
+OpenGL Tutorials:
+    https://learnopengl.com/
+    https://www.opengl-tutorial.org/
+    https://webgl2fundamentals.org/
+
 Assets:
     https://ambientcg.com/
     https://freestylized.com/
