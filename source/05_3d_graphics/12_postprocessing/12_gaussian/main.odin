@@ -142,31 +142,16 @@ main :: proc() {
     time_delta: f32
 
     base: b.Base
-
-    if !b.init_base(&base, viewport_x, viewport_y) {
-
-        return
-    }
-
+    b.init_base(&base, viewport_x, viewport_y)
     defer b.destroy_base(&base)
 
     blur_h_pg, blur_h_ok := gl.load_shaders_source(GAUSSIAN_VS, BLUR_H_FS); defer gl.DeleteProgram(blur_h_pg)
     blur_h_uf := gl.get_uniforms_from_program(blur_h_pg); defer gl.destroy_uniforms(blur_h_uf)
-
-    if !blur_h_ok {
-        fmt.printf("PROGRAM ERROR: %s\n", gl.get_last_error_message())
-
-        return
-    }
+    assert(blur_h_ok, "ERROR: Failed to compile program")
 
     blur_v_pg, blur_v_ok := gl.load_shaders_source(GAUSSIAN_VS, BLUR_V_FS); defer gl.DeleteProgram(blur_v_pg)
     blur_v_uf := gl.get_uniforms_from_program(blur_v_pg); defer gl.destroy_uniforms(blur_v_uf)
-
-    if !blur_v_ok {
-        fmt.printf("PROGRAM ERROR: %s\n", gl.get_last_error_message())
-
-        return
-    }
+    assert(blur_v_ok, "ERROR: Failed to compile program")
 
     pp: RenderTarget
     init_render_target(&pp, viewport_x, viewport_y); defer destroy_render_target(&pp)

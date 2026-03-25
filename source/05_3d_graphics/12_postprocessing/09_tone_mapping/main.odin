@@ -156,20 +156,12 @@ main :: proc() {
     time_delta: f32
 
     base: b.Base
-
-    if !b.init_base(&base, viewport_x, viewport_y) {
-        return
-    }
-
+    b.init_base(&base, viewport_x, viewport_y)
     defer b.destroy_base(&base)
 
     tone_mapping_pg, tone_mapping_ok := gl.load_shaders_source(TONE_MAPPING_VS, TONE_MAPPING_FS); defer gl.DeleteProgram(tone_mapping_pg)
     tone_mapping_uf := gl.get_uniforms_from_program(tone_mapping_pg); defer gl.destroy_uniforms(tone_mapping_uf)
-
-    if !tone_mapping_ok {
-        fmt.printf("PROGRAM ERROR: %s\n", gl.get_last_error_message())
-        return
-    }
+    assert(tone_mapping_ok, "ERROR: Failed to compile program")
 
     tone_operator := 0
 

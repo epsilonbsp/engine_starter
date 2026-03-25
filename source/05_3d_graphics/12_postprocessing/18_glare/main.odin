@@ -169,40 +169,20 @@ main :: proc() {
     time_delta: f32
 
     base: b.Base
-
-    if !b.init_base(&base, viewport_x, viewport_y) {
-
-        return
-    }
-
+    b.init_base(&base, viewport_x, viewport_y)
     defer b.destroy_base(&base)
 
     bright_pg, bright_ok := gl.load_shaders_source(GLARE_VS, BRIGHT_PASS_FS); defer gl.DeleteProgram(bright_pg)
     bright_uf := gl.get_uniforms_from_program(bright_pg); defer gl.destroy_uniforms(bright_uf)
-
-    if !bright_ok {
-        fmt.printf("PROGRAM ERROR: %s\n", gl.get_last_error_message())
-
-        return
-    }
+    assert(bright_ok, "ERROR: Failed to compile program")
 
     streak_pg, streak_ok := gl.load_shaders_source(GLARE_VS, STREAK_FS); defer gl.DeleteProgram(streak_pg)
     streak_uf := gl.get_uniforms_from_program(streak_pg); defer gl.destroy_uniforms(streak_uf)
-
-    if !streak_ok {
-        fmt.printf("PROGRAM ERROR: %s\n", gl.get_last_error_message())
-
-        return
-    }
+    assert(streak_ok, "ERROR: Failed to compile program")
 
     composite_pg, composite_ok := gl.load_shaders_source(GLARE_VS, GLARE_COMPOSITE_FS); defer gl.DeleteProgram(composite_pg)
     composite_uf := gl.get_uniforms_from_program(composite_pg); defer gl.destroy_uniforms(composite_uf)
-
-    if !composite_ok {
-        fmt.printf("PROGRAM ERROR: %s\n", gl.get_last_error_message())
-
-        return
-    }
+    assert(composite_ok, "ERROR: Failed to compile program")
 
     // bright_rt: bright-pass output (source for streak passes)
     bright_rt: RenderTarget

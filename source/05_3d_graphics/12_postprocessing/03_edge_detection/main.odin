@@ -96,21 +96,12 @@ main :: proc() {
     time_delta: f32
 
     base: b.Base
-
-    if !b.init_base(&base, viewport_x, viewport_y) {
-        return
-    }
-
+    b.init_base(&base, viewport_x, viewport_y)
     defer b.destroy_base(&base)
 
     edge_detection_pg, edge_detection_ok := gl.load_shaders_source(EDGE_DETECTION_VS, EDGE_DETECTION_FS); defer gl.DeleteProgram(edge_detection_pg)
     edge_detection_uf := gl.get_uniforms_from_program(edge_detection_pg); defer gl.destroy_uniforms(edge_detection_uf);
-
-    if !edge_detection_ok {
-        fmt.printf("PROGRAM ERROR: %s\n", gl.get_last_error_message())
-
-        return
-    }
+    assert(edge_detection_ok, "ERROR: Failed to compile program")
 
     enable_pp := true
 

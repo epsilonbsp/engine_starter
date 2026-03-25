@@ -90,22 +90,12 @@ main :: proc() {
     time_delta: f32
 
     base: b.Base
-
-    if !b.init_base(&base, viewport_x, viewport_y) {
-
-        return
-    }
-
+    b.init_base(&base, viewport_x, viewport_y)
     defer b.destroy_base(&base)
 
     sharpen_pg, sharpen_ok := gl.load_shaders_source(SHARPEN_VS, SHARPEN_FS); defer gl.DeleteProgram(sharpen_pg)
     sharpen_uf := gl.get_uniforms_from_program(sharpen_pg); defer gl.destroy_uniforms(sharpen_uf)
-
-    if !sharpen_ok {
-        fmt.printf("PROGRAM ERROR: %s\n", gl.get_last_error_message())
-
-        return
-    }
+    assert(sharpen_ok, "ERROR: Failed to compile program")
 
     enable_pp := true
     sharpen_strength := f32(1.0)

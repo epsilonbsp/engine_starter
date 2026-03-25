@@ -141,12 +141,7 @@ main :: proc() {
 
     main_pg, main_ok := gl.load_shaders_source(MAIN_VS, MAIN_FS); defer gl.DeleteProgram(main_pg)
     main_uf := gl.get_uniforms_from_program(main_pg); defer gl.destroy_uniforms(main_uf);
-
-    if !main_ok {
-        fmt.printf("PROGRAM ERROR: %s\n", gl.get_last_error_message())
-
-        return
-    }
+    assert(main_ok, "ERROR: Failed to compile program")
 
     cube_prim, _ := load_gltf_primitive(load_gltf_from_bytes(#load("models/cube.glb")))
     defer destroy_gltf_primitive(&cube_prim)

@@ -178,31 +178,16 @@ main :: proc() {
     time_delta: f32
 
     base: b.Base
-
-    if !b.init_base(&base, viewport_x, viewport_y) {
-
-        return
-    }
-
+    b.init_base(&base, viewport_x, viewport_y)
     defer b.destroy_base(&base)
 
     ssao_pg, ssao_ok := gl.load_shaders_source(SSAO_VS, SSAO_FS); defer gl.DeleteProgram(ssao_pg)
     ssao_uf := gl.get_uniforms_from_program(ssao_pg); defer gl.destroy_uniforms(ssao_uf)
-
-    if !ssao_ok {
-        fmt.printf("PROGRAM ERROR: %s\n", gl.get_last_error_message())
-
-        return
-    }
+    assert(ssao_ok, "ERROR: Failed to compile program")
 
     composite_pg, composite_ok := gl.load_shaders_source(SSAO_VS, COMPOSITE_FS); defer gl.DeleteProgram(composite_pg)
     composite_uf := gl.get_uniforms_from_program(composite_pg); defer gl.destroy_uniforms(composite_uf)
-
-    if !composite_ok {
-        fmt.printf("PROGRAM ERROR: %s\n", gl.get_last_error_message())
-
-        return
-    }
+    assert(composite_ok, "ERROR: Failed to compile program")
 
     // Generate hemisphere kernel
     kernel: [NUM_SAMPLES]glm.vec3

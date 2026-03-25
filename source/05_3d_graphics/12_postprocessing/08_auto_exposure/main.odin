@@ -116,28 +116,16 @@ main :: proc() {
     time_delta: f32
 
     base: b.Base
-
-    if !b.init_base(&base, viewport_x, viewport_y) {
-        return
-    }
-
+    b.init_base(&base, viewport_x, viewport_y)
     defer b.destroy_base(&base)
 
     lum_pg, lum_ok := gl.load_shaders_source(LUMINANCE_VS, LUMINANCE_FS); defer gl.DeleteProgram(lum_pg)
     lum_uf := gl.get_uniforms_from_program(lum_pg); defer gl.destroy_uniforms(lum_uf)
-
-    if !lum_ok {
-        fmt.printf("PROGRAM ERROR: %s\n", gl.get_last_error_message())
-        return
-    }
+    assert(lum_ok, "ERROR: Failed to compile program")
 
     auto_exposure_pg, auto_exposure_ok := gl.load_shaders_source(AUTO_EXPOSURE_VS, AUTO_EXPOSURE_FS); defer gl.DeleteProgram(auto_exposure_pg)
     auto_exposure_uf := gl.get_uniforms_from_program(auto_exposure_pg); defer gl.destroy_uniforms(auto_exposure_uf)
-
-    if !auto_exposure_ok {
-        fmt.printf("PROGRAM ERROR: %s\n", gl.get_last_error_message())
-        return
-    }
+    assert(auto_exposure_ok, "ERROR: Failed to compile program")
 
     lum_tex, lum_fbo: u32
     init_lum_buffer(&lum_tex, &lum_fbo, viewport_x, viewport_y)

@@ -85,21 +85,12 @@ main :: proc() {
     time_delta: f32
 
     base: b.Base
-
-    if !b.init_base(&base, viewport_x, viewport_y) {
-        return
-    }
-
+    b.init_base(&base, viewport_x, viewport_y)
     defer b.destroy_base(&base)
 
     chromatic_aberration_pg, chromatic_aberration_ok := gl.load_shaders_source(CHROMATIC_ABERRATION_VS, CHROMATIC_ABERRATION_FS); defer gl.DeleteProgram(chromatic_aberration_pg)
     chromatic_aberration_uf := gl.get_uniforms_from_program(chromatic_aberration_pg); defer gl.destroy_uniforms(chromatic_aberration_uf);
-
-    if !chromatic_aberration_ok {
-        fmt.printf("PROGRAM ERROR: %s\n", gl.get_last_error_message())
-
-        return
-    }
+    assert(chromatic_aberration_ok, "ERROR: Failed to compile program")
 
     enable_pp := true
     aberration_strength: f32 = 0.05

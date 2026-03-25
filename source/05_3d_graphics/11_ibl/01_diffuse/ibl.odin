@@ -122,11 +122,7 @@ load_hdr_cubemap :: proc(hdr_bytes: []byte, vao: u32, index_count: int) -> u32 {
     w, h, ch: c.int
     pixels := stbi.loadf_from_memory(raw_data(hdr_bytes), i32(len(hdr_bytes)), &w, &h, &ch, 3)
 
-    if pixels == nil {
-        fmt.println("ERROR: Failed to load HDR")
-
-        return 0
-    }
+    assert(pixels != nil, "ERROR: Failed to load HDR")
 
     defer stbi.image_free(rawptr(pixels))
 
@@ -155,8 +151,9 @@ load_hdr_cubemap :: proc(hdr_bytes: []byte, vao: u32, index_count: int) -> u32 {
     gl.TexParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
     gl.TexParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE)
 
-    equirect_pg, _ := gl.load_shaders_source(EQUIRECT_VS, EQUIRECT_FS); defer gl.DeleteProgram(equirect_pg)
+    equirect_pg, equirect_ok := gl.load_shaders_source(EQUIRECT_VS, EQUIRECT_FS); defer gl.DeleteProgram(equirect_pg)
     equirect_uf := gl.get_uniforms_from_program(equirect_pg); defer gl.destroy_uniforms(equirect_uf)
+    assert(equirect_ok, "ERROR: Failed to compile program")
 
     gl.UseProgram(equirect_pg)
     gl.Uniform1i(equirect_uf["u_equirect"].location, 0)
@@ -190,8 +187,9 @@ create_irradiance_map :: proc(hdr_cubemap: u32, vao: u32, index_count: int) -> u
     gl.TexParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE)
     gl.TexParameteri(gl.TEXTURE_CUBE_MAP, gl.TEXTURE_WRAP_R, gl.CLAMP_TO_EDGE)
 
-    irradiance_pg, _ := gl.load_shaders_source(EQUIRECT_VS, IRRADIANCE_FS); defer gl.DeleteProgram(irradiance_pg)
+    irradiance_pg, irradiance_ok := gl.load_shaders_source(EQUIRECT_VS, IRRADIANCE_FS); defer gl.DeleteProgram(irradiance_pg)
     irradiance_uf := gl.get_uniforms_from_program(irradiance_pg); defer gl.destroy_uniforms(irradiance_uf)
+    assert(irradiance_ok, "ERROR: Failed to compile program")
 
     gl.UseProgram(irradiance_pg)
     gl.Uniform1i(irradiance_uf["u_environment"].location, 0)

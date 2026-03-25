@@ -657,27 +657,27 @@ resize_scene_buffer :: proc(scene: ^SceneBuffer, width: i32, height: i32, depth_
     init_scene_buffer(scene, width, height, depth_tex)
 }
 
-init_base :: proc(base: ^Base, width: i32, height: i32) -> bool {
+init_base :: proc(base: ^Base, width: i32, height: i32) {
     ok: bool
 
     base.gbuffer_pg, ok = gl.load_shaders_source(GBUFFER_VS, GBUFFER_FS)
-    if !ok do return false
+    assert(ok, "ERROR: Failed to compile program")
     base.gbuffer_uf = gl.get_uniforms_from_program(base.gbuffer_pg)
 
     base.lighting_pg, ok = gl.load_shaders_source(LIGHTING_VS, LIGHTING_FS)
-    if !ok do return false
+    assert(ok, "ERROR: Failed to compile program")
     base.lighting_uf = gl.get_uniforms_from_program(base.lighting_pg)
 
     base.skybox_pg, ok = gl.load_shaders_source(SKYBOX_VS, SKYBOX_FS)
-    if !ok do return false
+    assert(ok, "ERROR: Failed to compile program")
     base.skybox_uf = gl.get_uniforms_from_program(base.skybox_pg)
 
     base.depth_pg, ok = gl.load_shaders_source(DEPTH_VS, DEPTH_FS)
-    if !ok do return false
+    assert(ok, "ERROR: Failed to compile program")
     base.depth_uf = gl.get_uniforms_from_program(base.depth_pg)
 
     base.tonemap_pg, ok = gl.load_shaders_source(TONEMAP_VS, TONEMAP_FS)
-    if !ok do return false
+    assert(ok, "ERROR: Failed to compile program")
     base.tonemap_uf = gl.get_uniforms_from_program(base.tonemap_pg)
 
     gl.GenVertexArrays(1, &base.main_vao)
@@ -779,8 +779,6 @@ init_base :: proc(base: ^Base, width: i32, height: i32) -> bool {
 
     gl.Enable(gl.DEPTH_TEST)
     gl.Enable(gl.CULL_FACE)
-
-    return true
 }
 
 destroy_base :: proc(base: ^Base) {

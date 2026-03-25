@@ -379,30 +379,15 @@ main :: proc() {
 
     gbuffer_pg, gbuffer_ok := gl.load_shaders_source(GBUFFER_VS, GBUFFER_FS); defer gl.DeleteProgram(gbuffer_pg)
     gbuffer_uf := gl.get_uniforms_from_program(gbuffer_pg); defer gl.destroy_uniforms(gbuffer_uf)
-
-    if !gbuffer_ok {
-        fmt.printf("PROGRAM ERROR: %s\n", gl.get_last_error_message())
-
-        return
-    }
+    assert(gbuffer_ok, "ERROR: Failed to compile program")
 
     lighting_pg, lighting_ok := gl.load_shaders_source(LIGHTING_VS, LIGHTING_FS); defer gl.DeleteProgram(lighting_pg)
     lighting_uf := gl.get_uniforms_from_program(lighting_pg); defer gl.destroy_uniforms(lighting_uf)
-
-    if !lighting_ok {
-        fmt.printf("PROGRAM ERROR: %s\n", gl.get_last_error_message())
-
-        return
-    }
+    assert(lighting_ok, "ERROR: Failed to compile program")
 
     light_pg, light_ok := gl.load_shaders_source(LIGHT_VS, LIGHT_FS); defer gl.DeleteProgram(light_pg)
     light_uf := gl.get_uniforms_from_program(light_pg); defer gl.destroy_uniforms(light_uf)
-
-    if !light_ok {
-        fmt.printf("PROGRAM ERROR: %s\n", gl.get_last_error_message())
-
-        return
-    }
+    assert(light_ok, "ERROR: Failed to compile program")
 
     main_vao: u32; gl.GenVertexArrays(1, &main_vao); defer gl.DeleteVertexArrays(1, &main_vao)
     gl.BindVertexArray(main_vao)

@@ -140,22 +140,12 @@ main :: proc() {
     time_delta: f32
 
     base: b.Base
-
-    if !b.init_base(&base, viewport_x, viewport_y) {
-
-        return
-    }
-
+    b.init_base(&base, viewport_x, viewport_y)
     defer b.destroy_base(&base)
 
     color_lut_pg, color_lut_ok := gl.load_shaders_source(COLOR_LUT_VS, COLOR_LUT_FS); defer gl.DeleteProgram(color_lut_pg)
     color_lut_uf := gl.get_uniforms_from_program(color_lut_pg); defer gl.destroy_uniforms(color_lut_uf)
-
-    if !color_lut_ok {
-        fmt.printf("PROGRAM ERROR: %s\n", gl.get_last_error_message())
-
-        return
-    }
+    assert(color_lut_ok, "ERROR: Failed to compile program")
 
     lut_tex := create_lut(); defer gl.DeleteTextures(1, &lut_tex)
 

@@ -76,21 +76,12 @@ main :: proc() {
     time_delta: f32
 
     base: b.Base
-
-    if !b.init_base(&base, viewport_x, viewport_y) {
-        return
-    }
-
+    b.init_base(&base, viewport_x, viewport_y)
     defer b.destroy_base(&base)
 
     gamma_correction_pg, gamma_correction_ok := gl.load_shaders_source(GAMMA_CORRECTION_VS, GAMMA_CORRECTION_FS); defer gl.DeleteProgram(gamma_correction_pg)
     gamma_correction_uf := gl.get_uniforms_from_program(gamma_correction_pg); defer gl.destroy_uniforms(gamma_correction_uf);
-
-    if !gamma_correction_ok {
-        fmt.printf("PROGRAM ERROR: %s\n", gl.get_last_error_message())
-
-        return
-    }
+    assert(gamma_correction_ok, "ERROR: Failed to compile program")
 
     enable_pp := true
 

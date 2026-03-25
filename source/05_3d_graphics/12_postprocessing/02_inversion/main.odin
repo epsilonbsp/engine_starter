@@ -79,21 +79,12 @@ main :: proc() {
     time_delta: f32
 
     base: b.Base
-
-    if !b.init_base(&base, viewport_x, viewport_y) {
-        return
-    }
-
+    b.init_base(&base, viewport_x, viewport_y)
     defer b.destroy_base(&base)
 
     inversion_pg, inversion_ok := gl.load_shaders_source(INVERSION_VS, INVERSION_FS); defer gl.DeleteProgram(inversion_pg)
     inversion_uf := gl.get_uniforms_from_program(inversion_pg); defer gl.destroy_uniforms(inversion_uf);
-
-    if !inversion_ok {
-        fmt.printf("PROGRAM ERROR: %s\n", gl.get_last_error_message())
-
-        return
-    }
+    assert(inversion_ok, "ERROR: Failed to compile program")
 
     enable_pp := true
 

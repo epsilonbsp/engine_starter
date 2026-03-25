@@ -184,49 +184,24 @@ main :: proc() {
     time_delta: f32
 
     base: b.Base
-
-    if !b.init_base(&base, viewport_x, viewport_y) {
-
-        return
-    }
-
+    b.init_base(&base, viewport_x, viewport_y)
     defer b.destroy_base(&base)
 
     bright_pg, bright_ok := gl.load_shaders_source(BLOOM_VS, BRIGHT_PASS_FS); defer gl.DeleteProgram(bright_pg)
     bright_uf := gl.get_uniforms_from_program(bright_pg); defer gl.destroy_uniforms(bright_uf)
-
-    if !bright_ok {
-        fmt.printf("PROGRAM ERROR: %s\n", gl.get_last_error_message())
-
-        return
-    }
+    assert(bright_ok, "ERROR: Failed to compile program")
 
     blur_h_pg, blur_h_ok := gl.load_shaders_source(BLOOM_VS, BLUR_H_FS); defer gl.DeleteProgram(blur_h_pg)
     blur_h_uf := gl.get_uniforms_from_program(blur_h_pg); defer gl.destroy_uniforms(blur_h_uf)
-
-    if !blur_h_ok {
-        fmt.printf("PROGRAM ERROR: %s\n", gl.get_last_error_message())
-
-        return
-    }
+    assert(blur_h_ok, "ERROR: Failed to compile program")
 
     blur_v_pg, blur_v_ok := gl.load_shaders_source(BLOOM_VS, BLUR_V_FS); defer gl.DeleteProgram(blur_v_pg)
     blur_v_uf := gl.get_uniforms_from_program(blur_v_pg); defer gl.destroy_uniforms(blur_v_uf)
-
-    if !blur_v_ok {
-        fmt.printf("PROGRAM ERROR: %s\n", gl.get_last_error_message())
-
-        return
-    }
+    assert(blur_v_ok, "ERROR: Failed to compile program")
 
     composite_pg, composite_ok := gl.load_shaders_source(BLOOM_VS, BLOOM_COMPOSITE_FS); defer gl.DeleteProgram(composite_pg)
     composite_uf := gl.get_uniforms_from_program(composite_pg); defer gl.destroy_uniforms(composite_uf)
-
-    if !composite_ok {
-        fmt.printf("PROGRAM ERROR: %s\n", gl.get_last_error_message())
-
-        return
-    }
+    assert(composite_ok, "ERROR: Failed to compile program")
 
     // bright_rt: bright-pass output, reused for blurred highlights after V blur
     bright_rt: RenderTarget

@@ -143,21 +143,11 @@ main :: proc() {
     viewport_x, viewport_y: i32; sdl.GetWindowSize(window, &viewport_x, &viewport_y)
 
     texture_pg, texture_ok := gl.load_shaders_source(TEXTURE_VS, TEXTURE_FS); defer gl.DeleteProgram(texture_pg)
-
-    if !texture_ok {
-        fmt.printf("PROGRAM ERROR: %s\n", gl.get_last_error_message())
-
-        return
-    }
+    assert(texture_ok, "ERROR: Failed to compile program")
 
     main_pg, main_ok := gl.load_shaders_source(MAIN_VS, MAIN_FS); defer gl.DeleteProgram(main_pg)
     main_uf := gl.get_uniforms_from_program(main_pg); defer gl.destroy_uniforms(main_uf);
-
-    if !main_ok {
-        fmt.printf("PROGRAM ERROR: %s\n", gl.get_last_error_message())
-
-        return
-    }
+    assert(main_ok, "ERROR: Failed to compile program")
 
     main_vao: u32; gl.GenVertexArrays(1, &main_vao); defer gl.DeleteVertexArrays(1, &main_vao)
     gl.BindVertexArray(main_vao)

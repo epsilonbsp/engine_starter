@@ -83,21 +83,12 @@ main :: proc() {
     time_delta: f32
 
     base: b.Base
-
-    if !b.init_base(&base, viewport_x, viewport_y) {
-        return
-    }
-
+    b.init_base(&base, viewport_x, viewport_y)
     defer b.destroy_base(&base)
 
     vignette_pg, vignette_ok := gl.load_shaders_source(VIGNETTE_VS, VIGNETTE_FS); defer gl.DeleteProgram(vignette_pg)
     vignette_uf := gl.get_uniforms_from_program(vignette_pg); defer gl.destroy_uniforms(vignette_uf);
-
-    if !vignette_ok {
-        fmt.printf("PROGRAM ERROR: %s\n", gl.get_last_error_message())
-
-        return
-    }
+    assert(vignette_ok, "ERROR: Failed to compile program")
 
     enable_pp := true
     vignette_strength: f32 = 2.0

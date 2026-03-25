@@ -92,20 +92,12 @@ main :: proc() {
     time_delta: f32
 
     base: b.Base
-
-    if !b.init_base(&base, viewport_x, viewport_y) {
-        return
-    }
-
+    b.init_base(&base, viewport_x, viewport_y)
     defer b.destroy_base(&base)
 
     color_grading_pg, color_grading_ok := gl.load_shaders_source(COLOR_GRADING_VS, COLOR_GRADING_FS); defer gl.DeleteProgram(color_grading_pg)
     color_grading_uf := gl.get_uniforms_from_program(color_grading_pg); defer gl.destroy_uniforms(color_grading_uf)
-
-    if !color_grading_ok {
-        fmt.printf("PROGRAM ERROR: %s\n", gl.get_last_error_message())
-        return
-    }
+    assert(color_grading_ok, "ERROR: Failed to compile program")
 
     enable_pp := true
     saturation := f32(1.2)
